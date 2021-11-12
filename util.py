@@ -1,10 +1,11 @@
 import numpy as np
-from scipy.misc import imread, imresize, imsave
+#from scipy.misc import imread, imresize, imsave
+import imageio
 import torch
 
 
 def load_image(filepath):
-    image = imread(filepath)
+    image = imageio.imread(filepath)
     if len(image.shape) < 3:
         image = np.expand_dims(image, axis=2)
         image = np.repeat(image, 3, axis=2)
@@ -25,7 +26,7 @@ def save_image(image, filename):
     image = image.clip(0, 255)
     image = np.transpose(image, (1, 2, 0))
     image = image.astype(np.uint8)
-    imsave(filename, image)
+    imageio.imsave(filename, image)
     print ("Image saved as {}".format(filename))
 
 def is_image(filename):
