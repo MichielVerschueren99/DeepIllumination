@@ -23,11 +23,11 @@ if __name__ == "__main__":
     else:
         device = torch.device("cpu")
 
-    netG_model = torch.load('C:\\Users\\Michi\\PycharmProjects\\checkpoint\\testMichiel\\{}'.format(opt.model))
+    netG_model = torch.load('C:\\Users\\Michi\\PycharmProjects\\Thesis\\checkpoint\\testMichiel\\{}'.format(opt.model))
     netG = G(opt.n_channel_input * 4, opt.n_channel_output, opt.n_generator_filters)
     netG.load_state_dict(netG_model['state_dict_G'])
-    root_dir = 'C:\\Users\\Michi\\PycharmProjects\\dataset\\{}\\test\\'.format(opt.dataset)
-    image_dir = 'C:\\Users\\Michi\\PycharmProjects\\dataset\\{}\\test\\albedo'.format(opt.dataset)
+    root_dir = 'C:\\Users\\Michi\\PycharmProjects\\Thesis\\dataset\\{}\\test\\'.format(opt.dataset)
+    image_dir = 'C:\\Users\\Michi\\PycharmProjects\\Thesis\\dataset\\{}\\test\\albedo'.format(opt.dataset)
     image_filenames = [x for x in os.listdir(image_dir) if is_image(x)]
 
     for image_name in image_filenames:
