@@ -3,7 +3,8 @@ from os.path import join
 
 import torch.utils.data as data
 
-from util import is_image, load_image
+from util import is_image, load_image, load_depth
+
 
 class DataLoaderHelper(data.Dataset):
     def __init__(self, image_dir):
@@ -18,7 +19,7 @@ class DataLoaderHelper(data.Dataset):
 
     def __getitem__(self, index):
         albedo = load_image(join(self.albedo_path, self.image_filenames[index]))
-        depth = load_image(join(self.depth_path, self.image_filenames[index]))
+        depth = load_depth(join(self.depth_path, self.image_filenames[index]))
         direct = load_image(join(self.direct_path, self.image_filenames[index]))
         normal = load_image(join(self.normal_path, self.image_filenames[index]))
         gt = load_image(join(self.gt_path, self.image_filenames[index]))

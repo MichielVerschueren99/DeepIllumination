@@ -48,7 +48,7 @@ if __name__ == "__main__":
 
     print('=> Loading datasets')
 
-    root_dir = "C:\\Users\\Michi\\PycharmProjects\\Thesis\\dataset\\"
+    root_dir = "C:\\Users\\Michi\\PycharmProjects\\DeepIllumination\\dataset\\"
     train_dir = join(root_dir + opt.dataset, "train")
     test_dir = join(root_dir + opt.dataset, "val")
 
@@ -132,14 +132,16 @@ if __name__ == "__main__":
 
 
     def train(epoch):
-        for (i, images) in enumerate(train_data):
+        for (i, images) in enumerate(train_data): #assert(out = forward(X).shape, (2,4,256))
             netD.zero_grad()
             (albedo_cpu, direct_cpu, normal_cpu, depth_cpu, gt_cpu) = (images[0], images[1], images[2], images[3], images[4])
-            albedo.data.resize_(albedo_cpu.size()).copy_(albedo_cpu)
-            direct.data.resize_(direct_cpu.size()).copy_(direct_cpu)
-            normal.data.resize_(normal_cpu.size()).copy_(normal_cpu)
-            depth.data.resize_(depth_cpu.size()).copy_(depth_cpu)
-            gt.data.resize_(gt_cpu.size()).copy_(gt_cpu)
+
+            with torch.no_grad():
+                albedo.resize_(albedo_cpu.size()).copy_(albedo_cpu)
+                direct.resize_(direct_cpu.size()).copy_(direct_cpu)
+                normal.resize_(normal_cpu.size()).copy_(normal_cpu)
+                depth.resize_(depth_cpu.size()).copy_(depth_cpu)
+                gt.resize_(gt_cpu.size()).copy_(gt_cpu)
             output = netD(torch.cat((albedo, direct, normal, depth, gt), 1))
             with torch.no_grad():
                 label.resize_(output.size()).fill_(real_label)
