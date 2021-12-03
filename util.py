@@ -82,3 +82,78 @@ def read_pfm(file):
     data = np.fromfile(file, endian + 'f')
     shape = (height, width, 3) if color else (height, width)
     return np.reshape(data, shape)
+
+def makePBRT(integrator, sampler, filter, film, camera, world):  # TODO wat doet die tranform hier?
+    return """Integrator {}
+Transform [ 1 -0 -0 -0 -0 1 -0 -0 -0 -0 -1 -0 -0 -1 6.8 1]
+Sampler {}
+PixelFilter {}
+Film {}
+Camera {}
+WorldBegin
+{}
+WorldEnd""".format(integrator, sampler, filter, film, camera, world)
+
+
+def pathTracingIntegrator(maxdepth=65):
+    return "\"path\" \"integer maxdepth\" [ {} ]".format(maxdepth)
+
+
+def normalIntegrator():
+    return "\"normal\""
+
+
+def depthIntegrator():
+    return "\"depth\""
+
+
+def directIlluminationIntegrator():
+    return "\"direct\""
+
+
+def sobolSampler(samples=64):
+    return "\"sobol\" \"integer pixelsamples\" [ {} ]".format(samples)
+
+
+def triangleFilter(xwidth=1, ywidth=1):
+    return "\"triangle\" \"float xwidth\" [ {} ] \"float ywidth\" [ {} ]".format(xwidth, ywidth)
+
+
+def imageFilm(filename, xresolution=256, yresolution=256):
+    return "\"image\" \"integer xresolution\" [ {} ] \"integer yresolution\" [ {} ] \"string filename\" [ \"{}\" ]".format(
+        xresolution, yresolution, filename)
+
+
+def perspectiveCamera(fov=19.5):
+    return "\"perspective\" \"float fov\" [ {} ]".format(fov)
+
+
+def cornellBoxWorld(attribute):
+    return """
+MakeNamedMaterial "LeftWall" "string type" [ "matte" ] "rgb Kd" [ 0.630000 0.065000 0.050000 ] 
+MakeNamedMaterial "RightWall" "string type" [ "matte" ] "rgb Kd" [ 0.140000 0.450000 0.091000 ] 
+MakeNamedMaterial "Floor" "string type" [ "matte" ] "rgb Kd" [ 0.725000 0.710000 0.680000 ] 
+MakeNamedMaterial "Ceiling" "string type" [ "matte" ] "rgb Kd" [ 0.725000 0.710000 0.680000 ] 
+MakeNamedMaterial "BackWall" "string type" [ "matte" ] "rgb Kd" [ 0.725000 0.710000 0.680000 ] 
+MakeNamedMaterial "Item" "string type" [ "matte" ] "rgb Kd" [ 0.725000 0.710000 0.680000 ] 
+MakeNamedMaterial "Light" "string type" [ "matte" ] "rgb Kd" [ 0.000000 0.000000 0.000000 ] 
+NamedMaterial "Floor" 
+Shape "trianglemesh" "integer indices" [ 0 1 2 0 2 3 ] "point P" [ -1 1.74846e-007 -1 -1 1.74846e-007 1 1 -1.74846e-007 1 1 -1.74846e-007 -1 ] "normal N" [ 4.37114e-008 1 1.91069e-015 4.37114e-008 1 1.91069e-015 4.37114e-008 1 1.91069e-015 4.37114e-008 1 1.91069e-015 ] "float uv" [ 0 0 1 0 1 1 0 1 ] 
+NamedMaterial "Ceiling" 
+Shape "trianglemesh" "integer indices" [ 0 1 2 0 2 3 ] "point P" [ 1 2 1 -1 2 1 -1 2 -1 1 2 -1 ] "normal N" [ -8.74228e-008 -1 -4.37114e-008 -8.74228e-008 -1 -4.37114e-008 -8.74228e-008 -1 -4.37114e-008 -8.74228e-008 -1 -4.37114e-008 ] "float uv" [ 0 0 1 0 1 1 0 1 ] 
+NamedMaterial "BackWall" 
+Shape "trianglemesh" "integer indices" [ 0 1 2 0 2 3 ] "point P" [ -1 0 -1 -1 2 -1 1 2 -1 1 0 -1 ] "normal N" [ 8.74228e-008 -4.37114e-008 -1 8.74228e-008 -4.37114e-008 -1 8.74228e-008 -4.37114e-008 -1 8.74228e-008 -4.37114e-008 -1 ] "float uv" [ 0 0 1 0 1 1 0 1 ] 
+NamedMaterial "RightWall" 
+Shape "trianglemesh" "integer indices" [ 0 1 2 0 2 3 ] "point P" [ 1 0 -1 1 2 -1 1 2 1 1 0 1 ] "normal N" [ 1 -4.37114e-008 1.31134e-007 1 -4.37114e-008 1.31134e-007 1 -4.37114e-008 1.31134e-007 1 -4.37114e-008 1.31134e-007 ] "float uv" [ 0 0 1 0 1 1 0 1 ] 
+NamedMaterial "LeftWall" 
+Shape "trianglemesh" "integer indices" [ 0 1 2 0 2 3 ] "point P" [ -1 0 1 -1 2 1 -1 2 -1 -1 0 -1 ] "normal N" [ -1 -4.37114e-008 -4.37114e-008 -1 -4.37114e-008 -4.37114e-008 -1 -4.37114e-008 -4.37114e-008 -1 -4.37114e-008 -4.37114e-008 ] "float uv" [ 0 0 1 0 1 1 0 1 ] 
+
+AttributeBegin
+{}
+AttributeEnd
+
+AttributeBegin
+    AreaLightSource "diffuse" "rgb L" [ 17.000000 12.000000 4.000000 ] 
+    NamedMaterial "Light" 
+    Shape "trianglemesh" "integer indices" [ 0 1 2 0 2 3 ] "point P" [ -0.24 1.98 -0.22 0.23 1.98 -0.22 0.23 1.98 0.16 -0.24 1.98 0.16 ] "normal N" [ -8.74228e-008 -1 1.86006e-007 -8.74228e-008 -1 1.86006e-007 -8.74228e-008 -1 1.86006e-007 -8.74228e-008 -1 1.86006e-007 ] "float uv" [ 0 0 1 0 1 1 0 1 ] 
+AttributeEnd""".format(attribute)
