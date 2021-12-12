@@ -1,3 +1,5 @@
+import os
+
 import numpy as np
 #from scipy.misc import imread, imresize, imsave
 import imageio
@@ -5,27 +7,17 @@ import torch
 import re
 import sys
 
-def load_image(filepath):
-    image = imageio.imread(filepath)
+#filepath is altijd van een png
+def load_image(filepath, extension):
+    if extension == "png":
+        image = imageio.imread(filepath)
+    else:
+        size = len(filepath)
+        actual_filepath = filepath[:size - 4] + ".pfm"
+        image = read_pfm(actual_filepath)
     if len(image.shape) < 3:
         image = np.expand_dims(image, axis=2)
         image = np.repeat(image, 3, axis=2)
-    image = np.transpose(image, (2, 0, 1))
-    image = torch.from_numpy(image)
-    min = image.min()
-    max = image.max()
-    image = torch.FloatTensor(image.size()).copy_(image)
-    image.add_(-min).mul_(1.0 / (max - min))
-    image = image.mul_(2).add_(-1)
-    return image
-
-def load_depth(filepath):
-    image = read_pfm('C:\\Users\\Michi\\PycharmProjects\\DeepIllumination\\dataset\\initialtest\\train\\depth\\cornell-box.pfm')
-    if len(image.shape) < 3:
-        image = np.expand_dims(image, axis=2)
-        image = np.repeat(image, 3, axis=2)
-    if image.shape[2] == 4:
-        image = np.resize(image, (256, 256, 3))
     image = np.transpose(image, (2, 0, 1))
     image = torch.from_numpy(image)
     min = image.min()
@@ -106,9 +98,12 @@ def normalIntegrator():
 def depthIntegrator():
     return "\"depth\""
 
+def albedoIntegrator():
+    return "\"albedo\""
+
 
 def directIlluminationIntegrator():
-    return "\"direct\""
+    return "\"directlighting\""
 
 
 def sobolSampler(samples=64):
@@ -157,3 +152,12 @@ AttributeBegin
     NamedMaterial "Light" 
     Shape "trianglemesh" "integer indices" [ 0 1 2 0 2 3 ] "point P" [ -0.24 1.98 -0.22 0.23 1.98 -0.22 0.23 1.98 0.16 -0.24 1.98 0.16 ] "normal N" [ -8.74228e-008 -1 1.86006e-007 -8.74228e-008 -1 1.86006e-007 -8.74228e-008 -1 1.86006e-007 -8.74228e-008 -1 1.86006e-007 ] "float uv" [ 0 0 1 0 1 1 0 1 ] 
 AttributeEnd""".format(attribute)
+
+
+def put_render_in_location(path):
+    if os.path.exists(path):
+        os.remove(path)
+    if path.endswith(".png"):
+        os.rename(os.path.abspath("render.png"), path)
+    else:
+        os.rename(os.path.abspath("render.pfm"), path)
