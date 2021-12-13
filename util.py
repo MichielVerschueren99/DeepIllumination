@@ -18,10 +18,14 @@ def load_image(filepath, extension):
     if len(image.shape) < 3:
         image = np.expand_dims(image, axis=2)
         image = np.repeat(image, 3, axis=2)
+    #alpha kanaal verwijderen indien nodig
+    if image.shape[2] == 4:
+        image = np.delete(image, 3, 2)
+
     image = np.transpose(image, (2, 0, 1))
     image = torch.from_numpy(image)
-    min = image.min()
-    max = image.max()
+    min = image.min() + 0.0 #TODO ineens was hier + 0.0 nodig anders doet add_ raar om een of andere reden
+    max = image.max() + 0.0
     image = torch.FloatTensor(image.size()).copy_(image)
     image.add_(-min).mul_(1.0 / (max - min))
     image = image.mul_(2).add_(-1)
@@ -130,7 +134,7 @@ MakeNamedMaterial "RightWall" "string type" [ "matte" ] "rgb Kd" [ 0.140000 0.45
 MakeNamedMaterial "Floor" "string type" [ "matte" ] "rgb Kd" [ 0.725000 0.710000 0.680000 ] 
 MakeNamedMaterial "Ceiling" "string type" [ "matte" ] "rgb Kd" [ 0.725000 0.710000 0.680000 ] 
 MakeNamedMaterial "BackWall" "string type" [ "matte" ] "rgb Kd" [ 0.725000 0.710000 0.680000 ] 
-MakeNamedMaterial "Item" "string type" [ "matte" ] "rgb Kd" [ 0.725000 0.710000 0.680000 ] 
+MakeNamedMaterial "Item" "string type" [ "matte" ] "rgb Kd" [ 0.60000 0.60000 0.60000 ] 
 MakeNamedMaterial "Light" "string type" [ "matte" ] "rgb Kd" [ 0.000000 0.000000 0.000000 ] 
 NamedMaterial "Floor" 
 Shape "trianglemesh" "integer indices" [ 0 1 2 0 2 3 ] "point P" [ -1 1.74846e-007 -1 -1 1.74846e-007 1 1 -1.74846e-007 1 1 -1.74846e-007 -1 ] "normal N" [ 4.37114e-008 1 1.91069e-015 4.37114e-008 1 1.91069e-015 4.37114e-008 1 1.91069e-015 4.37114e-008 1 1.91069e-015 ] "float uv" [ 0 0 1 0 1 1 0 1 ] 

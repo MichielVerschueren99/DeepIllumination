@@ -187,6 +187,14 @@ if __name__ == "__main__":
         torch.save({'state_dict_D': netD.state_dict(), 'optimizer_D':optimizerD.state_dict()}, net_d_model_out_path)
         print("Checkpoint saved to {}".format("checkpoint" + opt.dataset))
 
+        #delete last checkpoint file to conserve memory
+        last_net_g_model_out_path = "checkpoint/{}/netG_model_epoch_{}.pth".format(opt.dataset, epoch - 1)
+        last_net_d_model_out_path = "checkpoint/{}/netD_model_epoch_{}.pth".format(opt.dataset, epoch - 1)
+        if os.path.exists(last_net_d_model_out_path):
+            os.remove(last_net_d_model_out_path)
+        if os.path.exists(last_net_g_model_out_path):
+            os.remove(last_net_g_model_out_path)
+
         if not os.path.exists("validation"):
             os.mkdir("validation")
         if not os.path.exists(os.path.join("validation", opt.dataset)):
