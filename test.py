@@ -7,7 +7,6 @@ from torch.autograd import Variable
 from model import G
 from util import is_image, load_image, save_image
 
-
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description='DeepRendering-implementation')
@@ -23,18 +22,18 @@ if __name__ == "__main__":
     else:
         device = torch.device("cpu")
 
-    netG_model = torch.load('C:\\Users\\Michi\\PycharmProjects\\Thesis\\checkpoint\\testMichiel\\{}'.format(opt.model))
+    netG_model = torch.load('C:\\Users\\Michi\\PycharmProjects\\DeepIllumination\\checkpoint\\{}'.format(opt.model), map_location=device)
     netG = G(opt.n_channel_input * 4, opt.n_channel_output, opt.n_generator_filters)
     netG.load_state_dict(netG_model['state_dict_G'])
-    root_dir = 'C:\\Users\\Michi\\PycharmProjects\\Thesis\\dataset\\{}\\test\\'.format(opt.dataset)
-    image_dir = 'C:\\Users\\Michi\\PycharmProjects\\Thesis\\dataset\\{}\\test\\albedo'.format(opt.dataset)
+    root_dir = 'C:\\Users\\Michi\\PycharmProjects\\DeepIllumination\\dataset\\{}\\test\\'.format(opt.dataset)
+    image_dir = 'C:\\Users\\Michi\\PycharmProjects\\DeepIllumination\\dataset\\{}\\test\\albedo'.format(opt.dataset)
     image_filenames = [x for x in os.listdir(image_dir) if is_image(x)]
 
     for image_name in image_filenames:
         albedo_image = load_image(root_dir + 'albedo\\' + image_name)
         direct_image = load_image(root_dir + 'direct\\' + image_name)
-        normal_image = load_image(root_dir + 'normal\\' + image_name)
-        depth_image = load_image(root_dir + 'depth\\' + image_name)
+        normal_image = load_image(root_dir + 'normal\\' + image_name, ".pfm")
+        depth_image = load_image(root_dir + 'depth\\' + image_name, ".pfm")
         gt_image = load_image(root_dir + 'gt\\' + image_name)
 
         albedo = Variable(albedo_image).view(1, -1, 256, 256).to(device)

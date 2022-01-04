@@ -48,7 +48,8 @@ if __name__ == "__main__":
 
     print('=> Loading datasets')
 
-    root_dir = "C:\\Users\\Michi\\PycharmProjects\\DeepIllumination\\dataset\\"
+    #root_dir = "C:\\Users\\Michi\\PycharmProjects\\DeepIllumination\\dataset\\"
+    root_dir = "/content/drive/MyDrive/Thesis/DeepIllumination/dataset/"
     train_dir = join(root_dir + opt.dataset, "train")
     test_dir = join(root_dir + opt.dataset, "val")
 

@@ -4,34 +4,37 @@ import subprocess
 from termcolor import cprint
 import util as u
 
-sphere_train_amount = 5
-sphere_val_amount = 2
+#EXPERIMENT 1: roterende objecten in een cornell box (zie paper)
+
+sphere_train_amount = 70
+sphere_val_amount = 30
 sphere_test_amount = 0
 
-cylinder_train_amount = 5
-cylinder_val_amount = 2
+cylinder_train_amount = 70
+cylinder_val_amount = 30
 cylinder_test_amount = 0
 
-cube_train_amount = 5
-cube_val_amount = 2
+cube_train_amount = 70
+cube_val_amount = 30
 cube_test_amount = 0
 
-bunny_train_amount = 5
-bunny_val_amount = 2
+bunny_train_amount = 70
+bunny_val_amount = 30
 bunny_test_amount = 0
 
-dragon_train_amount = 5
-dragon_val_amount = 2
+dragon_train_amount = 70
+dragon_val_amount = 30
 dragon_test_amount = 0
 
 buddha_train_amount = 0
 buddha_val_amount = 0
-buddha_test_amount = 1
+buddha_test_amount = 20
 
-total_amount = sphere_train_amount + sphere_val_amount + sphere_test_amount + cylinder_train_amount + cylinder_val_amount \
-            + cylinder_test_amount + cube_train_amount + cube_val_amount + cube_test_amount + bunny_train_amount + bunny_val_amount \
-            + bunny_test_amount + dragon_train_amount + dragon_val_amount + dragon_test_amount + buddha_train_amount \
-            + buddha_val_amount + buddha_test_amount
+total_amount = (sphere_train_amount + sphere_val_amount + sphere_test_amount + cylinder_train_amount + cylinder_val_amount
+                + cylinder_test_amount + cube_train_amount + cube_val_amount + cube_test_amount + bunny_train_amount + bunny_val_amount
+                + bunny_test_amount + dragon_train_amount + dragon_val_amount + dragon_test_amount + buddha_train_amount
+                + buddha_val_amount + buddha_test_amount) * 5
+amount_done = 0
 
 
 def experiment1():
@@ -127,20 +130,20 @@ def experiment1():
 
 
 
-def generate_data(dataset, at, name, amount):
+def generate_data(dataset, at_template, name, amount):
 
     counter = 0
     while counter < amount:
         x_rotation = random.random() * 360
         y_rotation = random.random() * 360
         z_rotation = random.random() * 360
-        at = at.format(x_rotation, y_rotation, z_rotation)
+        at = at_template.format(x_rotation, y_rotation, z_rotation)
 
         albedo_scene_file_content = u.makePBRT(u.albedoIntegrator(), u.sobolSampler(64), u.triangleFilter(), u.imageFilm("render.png"), u.perspectiveCamera(), u.cornellBoxWorld(at))
         normal_scene_file_content = u.makePBRT(u.normalIntegrator(), u.sobolSampler(64), u.triangleFilter(), u.imageFilm("render.pfm"), u.perspectiveCamera(), u.cornellBoxWorld(at))
         direct_scene_file_content = u.makePBRT(u.directIlluminationIntegrator(), u.sobolSampler(64), u.triangleFilter(), u.imageFilm("render.png"), u.perspectiveCamera(), u.cornellBoxWorld(at))
         depth_scene_file_content = u.makePBRT(u.depthIntegrator(), u.sobolSampler(64), u.triangleFilter(), u.imageFilm("render.pfm"), u.perspectiveCamera(), u.cornellBoxWorld(at))
-        gt_scene_file_content = u.makePBRT(u.pathTracingIntegrator(), u.sobolSampler(64), u.triangleFilter(), u.imageFilm("render.png"), u.perspectiveCamera(), u.cornellBoxWorld(at))
+        gt_scene_file_content = u.makePBRT(u.pathTracingIntegrator(), u.sobolSampler(512), u.triangleFilter(), u.imageFilm("render.png"), u.perspectiveCamera(), u.cornellBoxWorld(at))
         render_and_save_scene(albedo_scene_file_content, "dataset\\experiment1\\{}\\albedo\\{}.png".format(dataset, name))
         render_and_save_scene(normal_scene_file_content, "dataset\\experiment1\\{}\\normal\\{}.pfm".format(dataset, name))
         render_and_save_scene(direct_scene_file_content, "dataset\\experiment1\\{}\\direct\\{}.png".format(dataset, name))
@@ -148,7 +151,6 @@ def generate_data(dataset, at, name, amount):
         render_and_save_scene(gt_scene_file_content, "dataset\\experiment1\\{}\\gt\\{}.png".format(dataset, name))
         counter += 1
         name += 1
-#        cprint("{}: {}/{} samples completed".format(dataset, name, total_amount), 'green')
     return name
 
 
@@ -160,6 +162,10 @@ def render_and_save_scene(scene_file_content, path):
 
     print(os.path.abspath("scene.pbrt"))
     subprocess.run(['pbrt', "scene.pbrt"])
+
+    global amount_done
+    amount_done = amount_done + 1
+    cprint("{}/{} renders completed".format(amount_done, total_amount), 'green')
 
     u.put_render_in_location(path)
 
