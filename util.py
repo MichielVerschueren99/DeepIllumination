@@ -1,4 +1,5 @@
 import os
+import random
 
 import numpy as np
 # from scipy.misc import imread, imresize, imsave
@@ -83,9 +84,8 @@ def read_pfm(file):
     return np.reshape(data, shape)
 
 
-def makePBRT(integrator, sampler, filter, film, camera, world):  # TODO wat doet die tranform hier?
+def makePBRT(integrator, sampler, filter, film, camera, world):
     return """Integrator {}
-Transform [ 1 -0 -0 -0 -0 1 -0 -0 -0 -0 -1 -0 -0 -1 6.8 1]
 Sampler {}
 PixelFilter {}
 Film {}
@@ -93,6 +93,18 @@ Camera {}
 WorldBegin
 {}
 WorldEnd""".format(integrator, sampler, filter, film, camera, world)
+
+#oude versie
+#def makePBRT(integrator, sampler, filter, film, camera, world):
+#    return """Integrator {}
+#Transform [ 1 -0 -0 -0 -0 1 -0 -0 -0 -0 -1 -0 -0 -1 6.8 1]
+#Sampler {}
+#PixelFilter {}
+#Film {}
+#Camera {}
+#WorldBegin
+#{}
+#WorldEnd""".format(integrator, sampler, filter, film, camera, world)
 
 
 def pathTracingIntegrator(maxdepth=65):
@@ -131,6 +143,12 @@ def imageFilm(filename, xresolution=256, yresolution=256):
 def perspectiveCamera(fov=19.5):
     return "\"perspective\" \"float fov\" [ {} ]".format(fov)
 
+def lookAtPerspectiveCamera(position, look_at_point, up, fov=19.5):
+    return """LookAt {} {} {}
+       {} {} {}
+       {} {} {}
+Camera \"perspective\" \"float fov\" [ {} ]""".format(position[0], position[1], position[2], look_at_point[0], look_at_point[1], look_at_point[2], up[0], up[1], up[2], fov)
+
 
 def cornellBoxWorld(attribute):
     return """
@@ -162,6 +180,29 @@ AttributeBegin
     Shape "trianglemesh" "integer indices" [ 0 1 2 0 2 3 ] "point P" [ -0.24 1.98 -0.22 0.23 1.98 -0.22 0.23 1.98 0.16 -0.24 1.98 0.16 ] "normal N" [ -8.74228e-008 -1 1.86006e-007 -8.74228e-008 -1 1.86006e-007 -8.74228e-008 -1 1.86006e-007 -8.74228e-008 -1 1.86006e-007 ] "float uv" [ 0 0 1 0 1 1 0 1 ] 
 AttributeEnd""".format(attribute)
 
+#4 muren, random kleuren voor de 2 muren
+def emptyPrimitiveRoom(back_rgb, right_rgb, front_rgb, left_rgb):
+    return """MakeNamedMaterial "LeftWall" "string type" [ "matte" ] "rgb Kd" [ {} {} {} ] 
+	MakeNamedMaterial "RightWall" "string type" [ "matte" ] "rgb Kd" [ {} {} {} ] 
+	MakeNamedMaterial "Floor" "string type" [ "matte" ] "rgb Kd" [ 0.725000 0.710000 0.680000 ] 
+	MakeNamedMaterial "Ceiling" "string type" [ "matte" ] "rgb Kd" [ 0.725000 0.710000 0.680000 ] 
+	MakeNamedMaterial "BackWall" "string type" [ "matte" ] "rgb Kd" [ {} {} {} ] 
+	MakeNamedMaterial "FrontWall" "string type" [ "matte" ] "rgb Kd" [ {} {} {} ] 
+	MakeNamedMaterial "Light" "string type" [ "matte" ] "rgb Kd" [ 0.000000 0.000000 0.000000 ] 
+	NamedMaterial "Floor" 
+	Shape "trianglemesh" "integer indices" [ 0 1 2 0 2 3 ] "point P" [ -1 0 -1 -1 0 1 1 0 1 1 0 -1 ] "normal N" [ 0 1 0 0 1 0 0 1 0 0 1 0 ] "float uv" [ 0 0 1 0 1 1 0 1 ] 
+	NamedMaterial "Ceiling" 
+	Shape "trianglemesh" "integer indices" [ 0 1 2 0 2 3 ] "point P" [ 1 2 1 -1 2 1 -1 2 -1 1 2 -1 ] "normal N" [ 0 -1 0 0 -1 0 0 -1 0 0 -1 0 ] "float uv" [ 0 0 1 0 1 1 0 1 ] 
+	NamedMaterial "BackWall" 
+	Shape "trianglemesh" "integer indices" [ 0 1 2 0 2 3 ] "point P" [ -1 0 -1 -1 2 -1 1 2 -1 1 0 -1 ] "normal N" [ 0 0 -1 0 0 -1 0 0 -1 0 0 -1 ] "float uv" [ 0 0 1 0 1 1 0 1 ]
+	NamedMaterial "FrontWall" 
+	Shape "trianglemesh" "integer indices" [ 0 1 2 0 2 3 ] "point P" [ -1 0 1 -1 2 1 1 2 1 1 0 1 ] "normal N" [ 0 0 1 0 0 1 0 0 1 0 0 1 ] "float uv" [ 0 0 1 0 1 1 0 1 ]
+	NamedMaterial "RightWall" 
+	Shape "trianglemesh" "integer indices" [ 0 1 2 0 2 3 ] "point P" [ 1 0 -1 1 2 -1 1 2 1 1 0 1 ] "normal N" [ 1 0 0 1 0 0 1 0 0 1 0 0 ] "float uv" [ 0 0 1 0 1 1 0 1 ] 
+	NamedMaterial "LeftWall" 
+	Shape "trianglemesh" "integer indices" [ 0 1 2 0 2 3 ] "point P" [ -1 0 1 -1 2 1 -1 2 -1 -1 0 -1 ] "normal N" [ -1 0 0 -1 0 0 -1 0 0 -1 0 0 ] "float uv" [ 0 0 1 0 1 1 0 1 ] """ \
+        .format(left_rgb[0], left_rgb[1], left_rgb[2], right_rgb[0], right_rgb[1], right_rgb[2], back_rgb[0], back_rgb[1], back_rgb[2], front_rgb[0], front_rgb[1], front_rgb[2])
+
 
 def put_render_in_location(path):
     if os.path.exists(path):
@@ -170,3 +211,28 @@ def put_render_in_location(path):
         os.rename(os.path.abspath("render.png"), path)
     else:
         os.rename(os.path.abspath("render.pfm"), path)
+
+
+def generate_random_list(min, max, length):
+    random_list = []
+    for i in range(0, length-1):
+        x = (random.random() * (max - min)) + min
+        random_list.append(x)
+    return random_list
+
+def generate_random_xz_locations(min, max, distance, length):
+    random_list = []
+    for i in range(0, length - 1):
+        new_point = [(random.random() * (max - min)) + min, (random.random() * (max - min)) + min]
+        while too_close_to_other_point(random_list, new_point, distance):
+            new_point = [(random.random() * (max - min)) + min, (random.random() * (max - min)) + min]
+        random_list.append(new_point)
+    return random_list
+
+def too_close_to_other_point(list, new_point, distance):
+    for point in list:
+        if (((point[0] - new_point[0]) ** 2) + ((point[1] - new_point[1]) ** 2))**0.5 < distance:
+            return False
+    return True
+
+

@@ -20,6 +20,9 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description='DeepRendering-implemention')
     parser.add_argument('--dataset', required=True, help='output from unity')
+    parser.add_argument('--dataset_directory', type=str, default="", help='give a custom dataset directory')
+    parser.add_argument('--keep_every_checkpoint', type=bool, default=False, help='keep the checkpoint that is generated after every epoch')
+    parser.add_argument('--windows_filepaths', type=bool, default=True, help='use windows filepaths')
     parser.add_argument('--train_batch_size', type=int, default=1, help='batch size for training')
     parser.add_argument('--test_batch_size', type=int, default=1, help='batch size for testing')
     parser.add_argument('--n_epoch', type=int, default=200, help='number of iterations')
@@ -48,8 +51,18 @@ if __name__ == "__main__":
 
     print('=> Loading datasets')
 
-    #root_dir = "C:\\Users\\Michi\\PycharmProjects\\DeepIllumination\\dataset\\"
-    root_dir = "/content/drive/MyDrive/Thesis/DeepIllumination/dataset/"
+
+    #root directory voor google collab: "/content/drive/MyDrive/Thesis/DeepIllumination/dataset/"
+
+    if opt.windows_filepaths:
+        slash = "\\"
+    else:
+        slash = "/"
+
+    root_dir = opt.dataset_directory
+    if root_dir == "":
+        root_dir = os.getcwd() + slash + "dataset" + slash
+
     train_dir = join(root_dir + opt.dataset, "train")
     test_dir = join(root_dir + opt.dataset, "val")
 
@@ -72,7 +85,6 @@ if __name__ == "__main__":
     criterion = nn.BCELoss()
     criterion_l1 = nn.L1Loss()
 
-
     albedo = torch.FloatTensor(opt.train_batch_size, opt.n_channel_input, 256, 256)
     direct = torch.FloatTensor(opt.train_batch_size, opt.n_channel_input, 256, 256)
     normal = torch.FloatTensor(opt.train_batch_size, opt.n_channel_input, 256, 256)
@@ -88,7 +100,6 @@ if __name__ == "__main__":
     netG = netG.to(device)
     criterion = criterion.to(device)
     criterion_l1 = criterion_l1.to(device)
-
 
     albedo = albedo.to(device)
     direct = direct.to(device)
@@ -182,19 +193,19 @@ if __name__ == "__main__":
             os.mkdir("checkpoint")
         if not os.path.exists(os.path.join("checkpoint", opt.dataset)):
             os.mkdir(os.path.join("checkpoint", opt.dataset))
-        net_g_model_out_path = "checkpoint/{}/netG_model_epoch_{}.pth".format(opt.dataset, epoch)
-        net_d_model_out_path = "checkpoint/{}/netD_model_epoch_{}.pth".format(opt.dataset, epoch)
+        net_g_model_out_path = "checkpoint" + slash + opt.dataset + slash + "netG_model_epoch_{}.pth".format(epoch)
+        net_d_model_out_path = "checkpoint" + slash + opt.dataset + slash + "netD_model_epoch_{}.pth".format(epoch)
         torch.save({'epoch':epoch+1, 'state_dict_G': netG.state_dict(), 'optimizer_G':optimizerG.state_dict()}, net_g_model_out_path)
         torch.save({'state_dict_D': netD.state_dict(), 'optimizer_D':optimizerD.state_dict()}, net_d_model_out_path)
         print("Checkpoint saved to {}".format("checkpoint" + opt.dataset))
 
-        #delete last checkpoint file to conserve memory
-        last_net_g_model_out_path = "checkpoint/{}/netG_model_epoch_{}.pth".format(opt.dataset, epoch - 1)
-        last_net_d_model_out_path = "checkpoint/{}/netD_model_epoch_{}.pth".format(opt.dataset, epoch - 1)
-        if os.path.exists(last_net_d_model_out_path):
-            os.remove(last_net_d_model_out_path)
-        if os.path.exists(last_net_g_model_out_path):
-            os.remove(last_net_g_model_out_path)
+        if not opt.keep_every_checkpoint:
+            last_net_g_model_out_path = "checkpoint" + slash + opt.dataset + slash + "netG_model_epoch_{}.pth".format(epoch - 1)
+            last_net_d_model_out_path = "checkpoint" + slash + opt.dataset + slash + "netD_model_epoch_{}.pth".format(epoch - 1)
+            if os.path.exists(last_net_d_model_out_path):
+                os.remove(last_net_d_model_out_path)
+            if os.path.exists(last_net_g_model_out_path):
+                os.remove(last_net_g_model_out_path)
 
         if not os.path.exists("validation"):
             os.mkdir("validation")
