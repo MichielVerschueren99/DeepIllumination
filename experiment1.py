@@ -6,8 +6,8 @@ import util as u
 
 #EXPERIMENT 1: roterende objecten in een cornell box (zie paper)
 
-sphere_train_amount = 70
-sphere_val_amount = 30
+sphere_train_amount = 70 #70
+sphere_val_amount = 30 #30
 sphere_test_amount = 0
 
 cylinder_train_amount = 70
@@ -144,11 +144,11 @@ def generate_data(dataset, at_template, name, amount):
         direct_scene_file_content = u.makePBRT(u.directIlluminationIntegrator(), u.sobolSampler(64), u.triangleFilter(), u.imageFilm("render.png"), u.perspectiveCamera(), u.cornellBoxWorld(at))
         depth_scene_file_content = u.makePBRT(u.depthIntegrator(), u.sobolSampler(64), u.triangleFilter(), u.imageFilm("render.pfm"), u.perspectiveCamera(), u.cornellBoxWorld(at))
         gt_scene_file_content = u.makePBRT(u.pathTracingIntegrator(), u.sobolSampler(512), u.triangleFilter(), u.imageFilm("render.png"), u.perspectiveCamera(), u.cornellBoxWorld(at))
-        render_and_save_scene(albedo_scene_file_content, "dataset\\experiment1\\{}\\albedo\\{}.png".format(dataset, name))
-        render_and_save_scene(normal_scene_file_content, "dataset\\experiment1\\{}\\normal\\{}.pfm".format(dataset, name))
-        render_and_save_scene(direct_scene_file_content, "dataset\\experiment1\\{}\\direct\\{}.png".format(dataset, name))
-        render_and_save_scene(depth_scene_file_content, "dataset\\experiment1\\{}\\depth\\{}.pfm".format(dataset, name))
-        render_and_save_scene(gt_scene_file_content, "dataset\\experiment1\\{}\\gt\\{}.png".format(dataset, name))
+        render_and_save_scene(albedo_scene_file_content, "dataset\\rot_cor\\{}\\albedo\\{}.png".format(dataset, name))
+        render_and_save_scene(normal_scene_file_content, "dataset\\rot_cor\\{}\\normal\\{}.pfm".format(dataset, name))
+        render_and_save_scene(direct_scene_file_content, "dataset\\rot_cor\\{}\\direct\\{}.png".format(dataset, name))
+        render_and_save_scene(depth_scene_file_content, "dataset\\rot_cor\\{}\\depth\\{}.pfm".format(dataset, name))
+        render_and_save_scene(gt_scene_file_content, "dataset\\rot_cor\\{}\\gt\\{}.png".format(dataset, name))
         counter += 1
         name += 1
     return name

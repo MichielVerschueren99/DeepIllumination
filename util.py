@@ -84,20 +84,8 @@ def read_pfm(file):
     return np.reshape(data, shape)
 
 
-def makePBRT(integrator, sampler, filter, film, camera, world):
-    return """Integrator {}
-Sampler {}
-PixelFilter {}
-Film {}
-Camera {}
-WorldBegin
-{}
-WorldEnd""".format(integrator, sampler, filter, film, camera, world)
-
-#oude versie
 #def makePBRT(integrator, sampler, filter, film, camera, world):
 #    return """Integrator {}
-#Transform [ 1 -0 -0 -0 -0 1 -0 -0 -0 -0 -1 -0 -0 -1 6.8 1]
 #Sampler {}
 #PixelFilter {}
 #Film {}
@@ -106,6 +94,17 @@ WorldEnd""".format(integrator, sampler, filter, film, camera, world)
 #{}
 #WorldEnd""".format(integrator, sampler, filter, film, camera, world)
 
+#oude versie
+def makePBRT(integrator, sampler, filter, film, camera, world):
+    return """Integrator {}
+Transform [ 1 -0 -0 -0 -0 1 -0 -0 -0 -0 -1 -0 -0 -1 6.8 1]
+Sampler {}
+PixelFilter {}
+Film {}
+Camera {}
+WorldBegin
+{}
+WorldEnd""".format(integrator, sampler, filter, film, camera, world)
 
 def pathTracingIntegrator(maxdepth=65):
     return "\"path\" \"integer maxdepth\" [ {} ]".format(maxdepth)
