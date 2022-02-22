@@ -1,12 +1,17 @@
 import os
 import random
 import subprocess
+from math import floor
+
 from paramiko import SSHClient, AutoAddPolicy
 from scp import SCPClient
 from termcolor import cprint
 import util as u
 import threading
 from fabric import *
+import time
+
+dataset_name = "sphere_in_cornell"
 
 key = "C:\\Users\\Michi\\.ssh\\id_rsa"
 password = open("C:\\Users\\Michi\\Documents\\school\\Thesis-stuff\\wachtwoord.txt", 'r').read().rstrip()
@@ -17,14 +22,67 @@ hostnames = ["aalst", "aarlen", "alken", "ans", "antwerpen", "asse", "aubel", "b
              "laarne", "lanaken", "libin", "libramont", "lier", "lint", "lommel", "luik", "maaseik", "malle",
              "mechelen", "moeskroen", "musson", "namen", "nijvel", "ohey", "olen", "ottignies", "overpelt", "perwez",
              "pittem", "riemst", "rixensart", "roeselare", "ronse", "schoten", "spa", "stavelot", "temse", "terhulpen",
-             "tienen", "torhout", "tremelo", "turnhout", "veurne", "vielsalm", "vilvoorde", "voeren", "waterloo", "waver",
-             "yvoir", "zwalm"]
+             "tienen", "torhout", "tremelo", "turnhout", "veurne", "vielsalm", "vilvoorde", "voeren", "waterloo",
+             "waver", "yvoir"]  # behalve zwalm
+
+
+def upload():
+
+    #upload pbrt files
+    root = 'C:\\Users\\Michi\\PycharmProjects\\DeepIllumination\\scenefiles\\' + dataset_name
+    all_file_paths = []
+    for r, d, f in os.walk(root):
+        for file in f:
+            all_file_paths.append(os.path.join(r, file))
+
+    c = Connection('r0705259@zwalm.cs.kotnet.kuleuven.be',
+                   connect_kwargs={"key_filename": key, "password": password},
+                   gateway=Connection('r0705259@st.cs.kuleuven.be',
+                                      connect_kwargs={"key_filename": key, "password": password}))
+    for path in all_file_paths:
+        c.put(path, "/home/r0705259/Thesis/" + dataset_name + path.replace(root, "").replace("\\", "/"))
+    c.close()
+
+
+    # maak id voor alle taken
+    global_job_list = []
+    for path in all_file_paths:
+        global_job_list.append(path.replace(".pbrt", "").replace(root, "").replace("\\", "_"))
+
+
+
+
+def main():
+
+
+    # bepaal verdeling van taken over hosts
+    amount_of_renders = len(global_job_list)
+    amount_of_hosts = len(hostnames)
+    if amount_of_renders < amount_of_hosts:
+        renders_per_host = 1
+    else:
+        renders_per_host = floor(amount_of_renders / amount_of_hosts)
+    remainder = amount_of_renders % amount_of_hosts
+
+    # start rendering threads
+    last_job_for_this_host = -1
+    for i in range(0, amount_of_hosts):
+        first_job_for_this_host = last_job_for_this_host + 1
+        if i < remainder:
+            last_job_for_this_host = first_job_for_this_host + renders_per_host
+        else:
+            last_job_for_this_host = first_job_for_this_host + renders_per_host - 1
+        ConnectionThread(hostnames[i], global_job_list[first_job_for_this_host:last_job_for_this_host + 1]).start()
+        time.sleep(0.05)
+
+    print("Exiting Main Thread")
+
 
 class ConnectionThread(threading.Thread):
-    def __init__(self, hostname, samplename):
+    def __init__(self, hostname, job_list):
         threading.Thread.__init__(self)
         self.hostname = hostname
-        self.samplename = samplename
+        self.job_list = job_list
 
     def run(self):
         print("Starting " + self.hostname)
@@ -32,16 +90,15 @@ class ConnectionThread(threading.Thread):
                        connect_kwargs={"key_filename": key, "password": password, "banner_timeout": 60000},
                        gateway=Connection('r0705259@st.cs.kuleuven.be',
                                           connect_kwargs={"key_filename": key, "password": password}))
-        with c.cd("/home/r0705259/Thesis/pbrt-v3/build"):
-            c.run("./pbrt /home/r0705259/Thesis/scenefiles/gt/" + self.samplename + ".pbrt --outfile /home/r0705259/Thesis/trainingdata/")
+        for job in self.job_list:
+            with c.cd("/home/r0705259/Thesis/pbrt-v3/build"):
+                c.run("./pbrt /home/r0705259/Thesis/scenefiles/" + dataset_name + job.replace("_", "/")
+                      + ".pbrt --quiet --outfile /home/r0705259/Thesis/trainingdata" + job.replace("_", "/") + ".png")
         c.close()
         print("Exiting " + self.hostname)
 
 
-for i in range(0, 86):
-    ConnectionThread(hostnames[i], str(i)).start()
-
-print("Exiting Main Thread")
+upload()
 
 # c = Connection('r0705259@dinant.cs.kotnet.kuleuven.be',
 #                connect_kwargs={"key_filename": key, "password": password},
