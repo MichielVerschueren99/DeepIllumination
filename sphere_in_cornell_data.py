@@ -39,11 +39,11 @@ def generate_data(dataset, at_template, name, amount):
         direct_scene_file_content = u.makePBRT(u.directIlluminationIntegrator(), u.sobolSampler(64), u.triangleFilter(), u.imageFilm("render.png"), u.perspectiveCamera(), u.cornellBoxWorld(at))
         depth_scene_file_content = u.makePBRT(u.depthIntegrator(), u.sobolSampler(64), u.triangleFilter(), u.imageFilm("render.pfm"), u.perspectiveCamera(), u.cornellBoxWorld(at))
         gt_scene_file_content = u.makePBRT(u.pathTracingIntegrator(), u.sobolSampler(512), u.triangleFilter(), u.imageFilm("render.png"), u.perspectiveCamera(), u.cornellBoxWorld(at))
-        save_scene_file(albedo_scene_file_content, "scenefiles\\sphere_in_cornell\\{}\\albedo\\{}.pbrt".format(dataset, name))
-        save_scene_file(normal_scene_file_content, "scenefiles\\sphere_in_cornell\\{}\\normal\\{}.pbrt".format(dataset, name))
-        save_scene_file(direct_scene_file_content, "scenefiles\\sphere_in_cornell\\{}\\direct\\{}.pbrt".format(dataset, name))
-        save_scene_file(depth_scene_file_content, "scenefiles\\sphere_in_cornell\\{}\\depth\\{}.pbrt".format(dataset, name))
-        save_scene_file(gt_scene_file_content, "scenefiles\\sphere_in_cornell\\{}\\gt\\{}.pbrt".format(dataset, name))
+        save_scene_file(albedo_scene_file_content, "scenefiles\\sphere_in_cornell\\{}_albedo_{}.pbrt".format(dataset, name))
+        save_scene_file(normal_scene_file_content, "scenefiles\\sphere_in_cornell\\{}_normal_{}.pbrt".format(dataset, name))
+        save_scene_file(direct_scene_file_content, "scenefiles\\sphere_in_cornell\\{}_direct_{}.pbrt".format(dataset, name))
+        save_scene_file(depth_scene_file_content, "scenefiles\\sphere_in_cornell\\{}_depth_{}.pbrt".format(dataset, name))
+        save_scene_file(gt_scene_file_content, "scenefiles\\sphere_in_cornell\\{}_gt_{}.pbrt".format(dataset, name))
         counter += 1
         name += 1
     return name

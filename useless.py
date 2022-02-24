@@ -11,13 +11,18 @@ import threading
 from fabric import *
 import time
 
+key = "C:\\Users\\Michi\\.ssh\\id_rsa"
+password = open("C:\\Users\\Michi\\Documents\\school\\Thesis-stuff\\wachtwoord.txt", 'r').read().rstrip()
 
-c = Connection('r0705259@zwalm.cs.kotnet.kuleuven.be',
-                   connect_kwargs={"key_filename": key, "password": password},
-                   gateway=Connection('r0705259@st.cs.kuleuven.be',
-                                      connect_kwargs={"key_filename": key, "password": password}))
-    c.put("C:\\Users\\Michi\\Documents\\school\\Thesis-stuff\\scene.pbrt", "/home/r0705259")
-    with c.cd("/home/r0705259/Thesis/pbrt-v3/build"):
-        c.run("./pbrt /home/r0705259/scene.pbrt")
-    c.get("/home/r0705259/Thesis/pbrt-v3/build/cornell-box.png")
-    c.close()
+# zwalm voor download en upload
+up_down_c = Connection('r0705259@' + 'zwalm.cs.kotnet.kuleuven.be',
+                       connect_kwargs={"key_filename": key, "password": password, "banner_timeout": 60000},
+                       gateway=Connection('r0705259@st.cs.kuleuven.be',
+                                          connect_kwargs={"key_filename": key, "password": password}))
+
+job_available = up_down_c.run("(ls result.txt >> /dev/null 2>&1 && echo yes) || echo no", hide='out').stdout
+
+if job_available == 'yes\n':
+    print("joepie")
+
+up_down_c.close()
