@@ -29,9 +29,10 @@ output_remote_dir = "/home/r0705259/Thesis/trainingdata"
 pbrt_remote_dir = "/home/r0705259/Thesis/pbrt-v3/build"
 
 class ConnectionThread(threading.Thread):
-    def __init__(self, hostname):
+    def __init__(self, hostname, job_list):
         threading.Thread.__init__(self)
         self.hostname = hostname
+        self.job_list = job_list
 
     def run(self):
 
@@ -43,28 +44,12 @@ class ConnectionThread(threading.Thread):
                        gateway=Connection('r0705259@st.cs.kuleuven.be',
                                           connect_kwargs={"key_filename": key, "password": password}))
 
-        # vind job, draai pbrt en verwijder .pbrt file
-        while True:
-            unfinished_job_list_lock.acquire()
-
-            if not unfinished_job_list:
-                break
-
-            job = unfinished_job_list[0]
-
-            #job_available = c.run("(ls " + input_remote_dir + "/" + job + ".pbrt >> /dev/null 2>&1 && echo yes) || echo no", hide='out').stdout
-
-            if job in c.run("ls " + input_remote_dir, hide='out').stdout:
-                print("ja")
-                unfinished_job_list.remove(job)
-                unfinished_job_list_lock.release()
-                with c.cd(pbrt_remote_dir):
-                    c.run("./pbrt " + input_remote_dir + "/" + job + ".pbrt --quiet --outfile " + output_remote_dir + "/" + job + ".png")
-                with c.cd(input_remote_dir):
-                    c.run("rm " + job + ".pbrt")
-            else:
-                print("nee")
-                unfinished_job_list_lock.release()
+        # draai pbrt en verwijder .pbrt file
+        for job in self.job_list:
+            with c.cd(pbrt_remote_dir):
+                c.run("./pbrt " + input_remote_dir + "/" + job + ".pbrt --quiet --outfile " + output_remote_dir + "/" + job + ".png")
+            with c.cd(input_remote_dir):
+                c.run("rm " + job + ".pbrt")
 
         #sluit connectie
         c.close()
@@ -83,10 +68,10 @@ if __name__ == "__main__":
             all_file_paths.append(os.path.join(r, file))
 
     # maak id voor alle taken
-    job_list = []
+    global_job_list = []
     for local_path in all_file_paths:
-        job_list.append(local_path.replace(".pbrt", "").replace(root + "\\", "").replace("\\", "_"))
-    random.shuffle(job_list)
+        global_job_list.append(local_path.replace(".pbrt", "").replace(root + "\\", "").replace("\\", "_"))
+    random.shuffle(global_job_list)
 
     # zwalm voor download en upload
     up_down_c = Connection('r0705259@' + 'zwalm.cs.kotnet.kuleuven.be',
@@ -95,27 +80,36 @@ if __name__ == "__main__":
                                               connect_kwargs={"key_filename": key, "password": password}))
 
     # bepaal verdeling van taken over hosts
-    amount_of_renders = len(job_list)
+    amount_of_renders = len(global_job_list)
     amount_of_hosts = len(hostnames)
+    if amount_of_renders < amount_of_hosts:
+        renders_per_host = 1
+    else:
+        renders_per_host = floor(amount_of_renders / amount_of_hosts)
+    remainder = amount_of_renders % amount_of_hosts
 
     #verwijder inhoud van scenefiles en trainingdata directories
     up_down_c.run("rm -rf /home/r0705259/Thesis/trainingdata && mkdir /home/r0705259/Thesis/trainingdata")
     up_down_c.run("rm -rf /home/r0705259/Thesis/scenefiles && mkdir /home/r0705259/Thesis/scenefiles")
 
-    # start rendering threads
-    unfinished_job_list = job_list.copy()
-    unfinished_job_list_lock = threading.Lock()
-    for i in range(0, amount_of_hosts):
-        ConnectionThread(hostnames[i]).start()
-        time.sleep(0.1)
-
     # upload .pbrt files
     progress_counter = 0
-    for j in job_list:
+    for j in global_job_list:
         input_local_path = 'C:\\Users\\Michi\\PycharmProjects\\DeepIllumination\\scenefiles\\' + dataset_name + "\\" + j + ".pbrt"
         up_down_c.put(input_local_path, input_remote_dir)
         progress_counter += 1
         print("{}/{} scenefiles uploaded".format(progress_counter, amount_of_renders))
+
+    # start rendering threads
+    last_job_for_this_host = -1
+    for i in range(0, amount_of_hosts):
+        first_job_for_this_host = last_job_for_this_host + 1
+        if i < remainder:
+            last_job_for_this_host = first_job_for_this_host + renders_per_host
+        else:
+            last_job_for_this_host = first_job_for_this_host + renders_per_host - 1
+        ConnectionThread(hostnames[i], global_job_list[first_job_for_this_host:last_job_for_this_host + 1]).start()
+        time.sleep(0.1)
 
     # download renders en verwijder remote kopie
     progress_counter = 0
