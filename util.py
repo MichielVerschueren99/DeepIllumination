@@ -97,11 +97,10 @@ def read_pfm(file):
 #oude versie
 def makePBRT(integrator, sampler, filter, film, camera, world):
     return """Integrator {}
-Transform [ 1 -0 -0 -0 -0 1 -0 -0 -0 -0 -1 -0 -0 -1 6.8 1]
 Sampler {}
 PixelFilter {}
 Film {}
-Camera {}
+{}
 WorldBegin
 {}
 WorldEnd""".format(integrator, sampler, filter, film, camera, world)
@@ -140,7 +139,7 @@ def imageFilm(filename, xresolution=256, yresolution=256):
 
 
 def perspectiveCamera(fov=19.5):
-    return "\"perspective\" \"float fov\" [ {} ]".format(fov)
+    return "Camera \"perspective\" \"float fov\" [ {} ]".format(fov)
 
 def lookAtPerspectiveCamera(position, look_at_point, up, fov=19.5):
     return """LookAt {} {} {}
@@ -148,6 +147,13 @@ def lookAtPerspectiveCamera(position, look_at_point, up, fov=19.5):
        {} {} {}
 Camera \"perspective\" \"float fov\" [ {} ]""".format(position[0], position[1], position[2], look_at_point[0], look_at_point[1], look_at_point[2], up[0], up[1], up[2], fov)
 
+
+def cornellBoxLight():
+    return """AttributeBegin
+		AreaLightSource \"diffuse\" \"rgb L\" [ 17.000000 12.000000 4.000000 ] 
+		NamedMaterial \"Light\" 
+		Shape \"trianglemesh" \"integer indices\" [ 0 1 2 0 2 3 ] \"point P\" [ -0.24 0.6 -0.22 0.23 0.6 -0.22 0.23 0.6 0.16 -0.24 0.6 0.16 ] \"normal N\" [ -8.74228e-008 -1 1.86006e-007 -8.74228e-008 -1 1.86006e-007 -8.74228e-008 -1 1.86006e-007 -8.74228e-008 -1 1.86006e-007 ] \"float uv\" [ 0 0 1 0 1 1 0 1 ] 
+	AttributeEnd"""
 
 def cornellBoxWorld(attribute):
     return """
@@ -214,14 +220,14 @@ def put_render_in_location(path):
 
 def generate_random_list(min, max, length):
     random_list = []
-    for i in range(0, length-1):
+    for i in range(0, length):
         x = (random.random() * (max - min)) + min
         random_list.append(x)
     return random_list
 
 def generate_random_xz_locations(min, max, distance, length):
     random_list = []
-    for i in range(0, length - 1):
+    for i in range(0, length):
         new_point = [(random.random() * (max - min)) + min, (random.random() * (max - min)) + min]
         while too_close_to_other_point(random_list, new_point, distance):
             new_point = [(random.random() * (max - min)) + min, (random.random() * (max - min)) + min]
@@ -231,7 +237,7 @@ def generate_random_xz_locations(min, max, distance, length):
 def too_close_to_other_point(list, new_point, distance):
     for point in list:
         if (((point[0] - new_point[0]) ** 2) + ((point[1] - new_point[1]) ** 2))**0.5 < distance:
-            return False
-    return True
+            return True
+    return False
 
 

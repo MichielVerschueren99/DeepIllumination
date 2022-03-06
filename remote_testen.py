@@ -11,7 +11,7 @@ import threading
 from fabric import *
 import time
 
-dataset_name = "sphere_in_cornell"
+dataset_name = "primitive_room"
 
 key = "C:\\Users\\Michi\\.ssh\\id_rsa"
 password = open("C:\\Users\\Michi\\Documents\\school\\Thesis-stuff\\wachtwoord.txt", 'r').read().rstrip()
@@ -19,15 +19,18 @@ hostnames = ["aalst", "aarlen", "alken", "ans", "antwerpen", "asse", "aubel", "b
              "bierbeek", "binche", "borgworm", "brugge", "charleroi", "chimay", "damme", "diest", "dinant", "doornik",
              "dour", "durbuy", "eeklo", "eupen", "fleurus", "genk", "gent", "gouvy", "haacht", "halle", "ham",
              "hamme", "hasselt", "hastiere", "heers", "heist", "herent", "hoei", "hove", "ieper", "kaprijke", "komen",
-             "laarne", "lanaken", "libin", "libramont", "lier", "lint", "lommel", "luik", "maaseik", "malle",
+             "laarne", "lanaken", "libin", "libramont", "lier", "lint", "luik", "maaseik", "malle",
              "mechelen", "moeskroen", "musson", "namen", "nijvel", "ohey", "olen", "ottignies", "overpelt", "perwez",
              "pittem", "riemst", "rixensart", "roeselare", "ronse", "schoten", "spa", "stavelot", "temse", "terhulpen",
              "tienen", "torhout", "tremelo", "turnhout", "veurne", "vielsalm", "vilvoorde", "voeren", "waterloo",
-             "waver", "yvoir"]  # behalve zwalm
-                                # geel is down
+             "waver"]  # zwalm is down
+# geel is down
+# lommel is overloaded
+# behalve yvoir
 input_remote_dir = "/home/r0705259/Thesis/scenefiles"
 output_remote_dir = "/home/r0705259/Thesis/trainingdata"
 pbrt_remote_dir = "/home/r0705259/Thesis/PBRTmod/build"
+
 
 class ConnectionThread(threading.Thread):
     def __init__(self, hostname, job_list):
@@ -39,33 +42,33 @@ class ConnectionThread(threading.Thread):
 
         print("Starting " + self.hostname)
 
-        #open connectie
-        c = Connection('r0705259@' + self.hostname + '.cs.kotnet.kuleuven.be',
-                       connect_kwargs={"key_filename": key, "password": password, "banner_timeout": 60000},
-                       gateway=Connection('r0705259@st.cs.kuleuven.be',
-                                          connect_kwargs={"key_filename": key, "password": password}))
+        try:
+            # open connectie
+            c = Connection('r0705259@' + self.hostname + '.cs.kotnet.kuleuven.be',
+                           connect_kwargs={"key_filename": key, "password": password, "banner_timeout": 60000},
+                           gateway=Connection('r0705259@st.cs.kuleuven.be',
+                                              connect_kwargs={"key_filename": key, "password": password}))
 
-        #draai pbrt
-        run_command = "./pbrt "
-        for current_job in self.job_list:
-            run_command += input_remote_dir + "/" + current_job + ".pbrt "
-        run_command += " --quiet"
-        with c.cd(pbrt_remote_dir):
-            c.run(run_command)
+            # draai pbrt
+            run_command = "./pbrt "
+            for current_job in self.job_list:
+                run_command += input_remote_dir + "/" + current_job + ".pbrt "
+            run_command += " --quiet"
+            with c.cd(pbrt_remote_dir):
+                c.run(run_command)
 
-        # run_command = "cd" + pbrt_remote_dir + "; "
-        # for current_job in self.job_list:
-        #     run_command += "./pbrt " + input_remote_dir + "/" + current_job + ".pbrt --quiet "
-        # c.run(run_command)
 
-        #sluit connectie
-        c.close()
+            # sluit connectie
+            c.close()
+        except:
+            print("{} failed, assigned renders were: {}".format(self.hostname, self.job_list))
+
         print("Exiting " + self.hostname)
 
 
 if __name__ == "__main__":
 
-    print("Starting Main (zwalm)")
+    print("Starting Main (yvoir)")
 
     # zoek alle .pbrt files
     root = 'C:\\Users\\Michi\\PycharmProjects\\DeepIllumination\\scenefiles\\' + dataset_name
@@ -94,8 +97,8 @@ if __name__ == "__main__":
     for i in global_job_list_per_buffer:
         assert (len(i) == len(global_job_list_per_buffer[0]))
 
-    # zwalm voor download en upload
-    up_down_c = Connection('r0705259@' + 'zwalm.cs.kotnet.kuleuven.be',
+    # yvoir voor download en upload
+    up_down_c = Connection('r0705259@' + 'yvoir.cs.kotnet.kuleuven.be',
                            connect_kwargs={"key_filename": key, "password": password, "banner_timeout": 60000},
                            gateway=Connection('r0705259@st.cs.kuleuven.be',
                                               connect_kwargs={"key_filename": key, "password": password}))
@@ -109,7 +112,7 @@ if __name__ == "__main__":
         samples_per_host = floor(amount_of_samples / amount_of_hosts)
     remainder = amount_of_samples % amount_of_hosts
 
-    #verwijder inhoud van scenefiles en trainingdata directories
+    # verwijder inhoud van scenefiles en trainingdata directories
     up_down_c.run("rm -rf /home/r0705259/Thesis/trainingdata && mkdir /home/r0705259/Thesis/trainingdata")
     up_down_c.run("rm -rf /home/r0705259/Thesis/scenefiles && mkdir /home/r0705259/Thesis/scenefiles")
 
@@ -157,12 +160,10 @@ if __name__ == "__main__":
 
             print("{}/{} renders completed".format(progress_counter, len(global_job_list)))
 
-
     # verwijder inhoud van scenefiles en trainingdata directories
     up_down_c.run("rm -rf /home/r0705259/Thesis/trainingdata && mkdir /home/r0705259/Thesis/trainingdata")
     up_down_c.run("rm -rf /home/r0705259/Thesis/scenefiles && mkdir /home/r0705259/Thesis/scenefiles")
 
-    #sluit connectie
+    # sluit connectie
     up_down_c.close()
-    print("Exiting Main (zwalm)")
-
+    print("Exiting Main (yvoir)")

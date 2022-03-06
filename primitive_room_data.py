@@ -4,19 +4,13 @@ import subprocess
 from termcolor import cprint
 import util as u
 
-train_amount = 2
+train_amount = 70
 val_amount = 0
 test_amount = 0
 
-total_amount = (train_amount + val_amount + test_amount) * 5
-amount_done = 0
-
+write_location = "/home/r0705259/Thesis/trainingdata/"
 
 def primitive_room():
-
-    train_counter = 0
-    test_counter = 0
-    val_counter = 0
 
     # CYLINDER
     cylinder_template = """AttributeBegin
@@ -65,65 +59,90 @@ def primitive_room():
 		Shape "plymesh" "string filename" "\\meshes\\dragon.ply"
 	AttributeEnd"""
 
+    counter = 0
+    per_dataset_counter = 0
+    dataset = "train"
+    while counter < train_amount:
 
-    while train_counter < train_amount:
+        if counter == train_amount:
+            dataset = "test"
+            per_dataset_counter = 0
+        if counter == train_amount + test_amount:
+            dataset = "val"
+            per_dataset_counter = 0
         back_wall_rgb = u.generate_random_list(0, 1, 3)
         left_wall_rgb = u.generate_random_list(0, 1, 3)
         right_wall_rgb = u.generate_random_list(0, 1, 3)
         front_wall_rgb = u.generate_random_list(0, 1, 3)
         world = u.emptyPrimitiveRoom(back_wall_rgb, right_wall_rgb, front_wall_rgb, left_wall_rgb)
 
-        object_locations = u.generate_random_xz_locations(-0.9, 0.9, 0.2, 6)
+        object_locations = u.generate_random_xz_locations(-0.9, 0.9, 0.2, 12)
 
         world = add_object(cylinder_template, object_locations[0], world)
-        world = add_object(cube_template, object_locations[1], world)
-        world = add_object(bunny_template, object_locations[2], world)
-        world = add_object(icos_template, object_locations[3], world)
-        world = add_object(dragon_template, object_locations[4], world)
-        world = add_object(sphere_template, object_locations[5], world)
+        world = add_object(cylinder_template, object_locations[1], world)
+        world = add_object(cylinder_template, object_locations[2], world)
+        world = add_object(cylinder_template, object_locations[3], world)
+        world = add_object(cylinder_template, object_locations[4], world)
+        world = add_object(cylinder_template, object_locations[5], world)
+        world = add_object(sphere_template, object_locations[6], world)
+        world = add_object(sphere_template, object_locations[7], world)
+        world = add_object(sphere_template, object_locations[8], world)
+        world = add_object(sphere_template, object_locations[9], world)
+        world = add_object(sphere_template, object_locations[10], world)
+        world = add_object(sphere_template, object_locations[11], world)
 
-        generate_data('train', world, train_counter)
+        world = world + '\n' + u.cornellBoxLight()
+
+        camera_position = u.generate_random_list(-0.9, 0.9, 3)
+        camera_position[1] = 0.4
+
+        camera = u.lookAtPerspectiveCamera(camera_position, [0, 0, 0], u.generate_random_list(0, 1, 3), 45)
+
+        generate_data(dataset, camera, world, per_dataset_counter)
+
+        per_dataset_counter += 1
+        counter += 1
 
 
 
-def add_object(object_template, location,world):
+def add_object(object_template, location, world):
     rgb = u.generate_random_list(0, 1, 3)
     world = world + '\n' + object_template.format(rgb[0], rgb[1], rgb[2], location[0], location[1])
     return world
 
 def generate_data(dataset, camera, world, name):
+    albedo_name = "{}_albedo_{}".format(dataset, name)
+    normal_name = "{}_normal_{}".format(dataset, name)
+    direct_name = "{}_direct_{}".format(dataset, name)
+    depth_name = "{}_depth_{}".format(dataset, name)
+    gt_name = "{}_gt_{}".format(dataset, name)
 
-    albedo_scene_file_content = u.makePBRT(u.albedoIntegrator(), u.sobolSampler(64), u.triangleFilter(), u.imageFilm("render.png"), u.perspectiveCamera(), u.cornellBoxWorld(at))
-    normal_scene_file_content = u.makePBRT(u.normalIntegrator(), u.sobolSampler(64), u.triangleFilter(), u.imageFilm("render.pfm"), u.perspectiveCamera(), u.cornellBoxWorld(at))
-    direct_scene_file_content = u.makePBRT(u.directIlluminationIntegrator(), u.sobolSampler(64), u.triangleFilter(), u.imageFilm("render.png"), u.perspectiveCamera(), u.cornellBoxWorld(at))
-    depth_scene_file_content = u.makePBRT(u.depthIntegrator(), u.sobolSampler(64), u.triangleFilter(), u.imageFilm("render.pfm"), u.perspectiveCamera(), u.cornellBoxWorld(at))
-    gt_scene_file_content = u.makePBRT(u.pathTracingIntegrator(), u.sobolSampler(512), u.triangleFilter(), u.imageFilm("render.png"), u.perspectiveCamera(), u.cornellBoxWorld(at))
-    render_and_save_scene(albedo_scene_file_content, "dataset\\experiment1\\{}\\albedo\\{}.png".format(dataset, name))
-    render_and_save_scene(normal_scene_file_content, "dataset\\experiment1\\{}\\normal\\{}.pfm".format(dataset, name))
-    render_and_save_scene(direct_scene_file_content, "dataset\\experiment1\\{}\\direct\\{}.png".format(dataset, name))
-    render_and_save_scene(depth_scene_file_content, "dataset\\experiment1\\{}\\depth\\{}.pfm".format(dataset, name))
-    render_and_save_scene(gt_scene_file_content, "dataset\\experiment1\\{}\\gt\\{}.png".format(dataset, name))
-    counter += 1
-    name += 1
-    return name
+    albedo_scene_file_content = u.makePBRT(u.albedoIntegrator(), u.sobolSampler(64), u.triangleFilter(),
+                                           u.imageFilm(write_location + albedo_name + ".png"), camera, world)
+    normal_scene_file_content = u.makePBRT(u.normalIntegrator(), u.sobolSampler(64), u.triangleFilter(),
+                                           u.imageFilm(write_location + normal_name + ".pfm"), camera, world)
+    direct_scene_file_content = u.makePBRT(u.directIlluminationIntegrator(), u.sobolSampler(64), u.triangleFilter(),
+                                           u.imageFilm(write_location + direct_name + ".png"), camera, world)
+    depth_scene_file_content = u.makePBRT(u.depthIntegrator(), u.sobolSampler(64), u.triangleFilter(),
+                                          u.imageFilm(write_location + depth_name + ".pfm"), camera, world)
+    gt_scene_file_content = u.makePBRT(u.pathTracingIntegrator(), u.sobolSampler(512), u.triangleFilter(),
+                                       u.imageFilm(write_location + gt_name + ".png"), camera, world)
+    save_scene_file(albedo_scene_file_content, "scenefiles\\primitive_room\\" + albedo_name + ".pbrt")
+    save_scene_file(normal_scene_file_content, "scenefiles\\primitive_room\\" + normal_name + ".pbrt")
+    save_scene_file(direct_scene_file_content, "scenefiles\\primitive_room\\" + direct_name + ".pbrt")
+    save_scene_file(depth_scene_file_content, "scenefiles\\primitive_room\\" + depth_name + ".pbrt")
+    save_scene_file(gt_scene_file_content, "scenefiles\\primitive_room\\" + gt_name + ".pbrt")
 
 
-def render_and_save_scene(scene_file_content, path):
+def save_scene_file(scene_file_content, path):
 
     scene_file = open("scene.pbrt", "w")
     scene_file.write(scene_file_content)
     scene_file.close()
 
-    print(os.path.abspath("scene.pbrt"))
-    subprocess.run(['pbrt', "scene.pbrt"])
-
-    global amount_done
-    amount_done = amount_done + 1
-    cprint("{}/{} renders completed".format(amount_done, total_amount), 'green')
-
-    u.put_render_in_location(path)
-
-    os.remove("scene.pbrt")
+    if os.path.exists(path):
+        os.remove(path)
+    os.rename(os.path.abspath("scene.pbrt"), path)
 
 
 primitive_room()

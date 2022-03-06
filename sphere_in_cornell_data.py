@@ -6,29 +6,27 @@ import util as u
 
 #bol op random locatie in cornell box
 
-sphere_train_amount = 5
-sphere_val_amount = 5
-sphere_test_amount = 5
+sphere_train_amount = 70
+sphere_val_amount = 20
+sphere_test_amount = 10
 
 write_location = "/home/r0705259/Thesis/trainingdata/"
 
 
 def sphere_in_cornell_data():
 
-    train_counter = 50
-    test_counter = 25
-    val_counter = 25
-
     # SPHERE
 
     at = """NamedMaterial "Item"
                 Translate {} {} 0
                 Shape "sphere" "float radius" 0.4 """
-    train_counter = generate_data("train", at, train_counter, sphere_train_amount)
-    test_counter = generate_data("test", at, test_counter, sphere_test_amount)
-    val_counter = generate_data("val", at, val_counter, sphere_val_amount)
+    generate_data("train", at, sphere_train_amount)
+    generate_data("test", at, sphere_test_amount)
+    generate_data("val", at, sphere_val_amount)
 
-def generate_data(dataset, at_template, name, amount):
+def generate_data(dataset, at_template, amount):
+
+    name = 0
 
     counter = 0
     while counter < amount:
@@ -54,7 +52,6 @@ def generate_data(dataset, at_template, name, amount):
         save_scene_file(gt_scene_file_content, "scenefiles\\sphere_in_cornell\\" + gt_name + ".pbrt")
         counter += 1
         name += 1
-    return name
 
 
 def save_scene_file(scene_file_content, path):
