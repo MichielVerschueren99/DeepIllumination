@@ -11,8 +11,5 @@ import threading
 from fabric import *
 import time
 
-lock = threading.Lock()
-
-lock.acquire()
-lock.acquire()
-print("t")
+global_job_list = ['train_direct_0', 'train_direct_1', 'train_direct_2', 'train_gt_0', 'train_gt_1', 'train_gt_2']
+print(global_job_list[4:4])

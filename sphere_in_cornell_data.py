@@ -6,16 +6,18 @@ import util as u
 
 #bol op random locatie in cornell box
 
-sphere_train_amount = 86
-sphere_val_amount = 0
-sphere_test_amount = 0
+sphere_train_amount = 5
+sphere_val_amount = 5
+sphere_test_amount = 5
+
+write_location = "/home/r0705259/Thesis/trainingdata/"
 
 
 def sphere_in_cornell_data():
 
-    train_counter = 0
-    test_counter = 0
-    val_counter = 0
+    train_counter = 50
+    test_counter = 25
+    val_counter = 25
 
     # SPHERE
 
@@ -34,16 +36,22 @@ def generate_data(dataset, at_template, name, amount):
         y_position = random.random() * 0.8 + 0.4
         at = at_template.format(x_position, y_position)
 
-        albedo_scene_file_content = u.makePBRT(u.albedoIntegrator(), u.sobolSampler(64), u.triangleFilter(), u.imageFilm("render.png"), u.perspectiveCamera(), u.cornellBoxWorld(at))
-        normal_scene_file_content = u.makePBRT(u.normalIntegrator(), u.sobolSampler(64), u.triangleFilter(), u.imageFilm("render.pfm"), u.perspectiveCamera(), u.cornellBoxWorld(at))
-        direct_scene_file_content = u.makePBRT(u.directIlluminationIntegrator(), u.sobolSampler(64), u.triangleFilter(), u.imageFilm("render.png"), u.perspectiveCamera(), u.cornellBoxWorld(at))
-        depth_scene_file_content = u.makePBRT(u.depthIntegrator(), u.sobolSampler(64), u.triangleFilter(), u.imageFilm("render.pfm"), u.perspectiveCamera(), u.cornellBoxWorld(at))
-        gt_scene_file_content = u.makePBRT(u.pathTracingIntegrator(), u.sobolSampler(512), u.triangleFilter(), u.imageFilm("render.png"), u.perspectiveCamera(), u.cornellBoxWorld(at))
-        save_scene_file(albedo_scene_file_content, "scenefiles\\sphere_in_cornell\\{}_albedo_{}.pbrt".format(dataset, name))
-        save_scene_file(normal_scene_file_content, "scenefiles\\sphere_in_cornell\\{}_normal_{}.pbrt".format(dataset, name))
-        save_scene_file(direct_scene_file_content, "scenefiles\\sphere_in_cornell\\{}_direct_{}.pbrt".format(dataset, name))
-        save_scene_file(depth_scene_file_content, "scenefiles\\sphere_in_cornell\\{}_depth_{}.pbrt".format(dataset, name))
-        save_scene_file(gt_scene_file_content, "scenefiles\\sphere_in_cornell\\{}_gt_{}.pbrt".format(dataset, name))
+        albedo_name = "{}_albedo_{}".format(dataset, name)
+        normal_name = "{}_normal_{}".format(dataset, name)
+        direct_name = "{}_direct_{}".format(dataset, name)
+        depth_name = "{}_depth_{}".format(dataset, name)
+        gt_name = "{}_gt_{}".format(dataset, name)
+
+        albedo_scene_file_content = u.makePBRT(u.albedoIntegrator(), u.sobolSampler(64), u.triangleFilter(), u.imageFilm(write_location + albedo_name + ".png"), u.perspectiveCamera(), u.cornellBoxWorld(at))
+        normal_scene_file_content = u.makePBRT(u.normalIntegrator(), u.sobolSampler(64), u.triangleFilter(), u.imageFilm(write_location + normal_name + ".pfm"), u.perspectiveCamera(), u.cornellBoxWorld(at))
+        direct_scene_file_content = u.makePBRT(u.directIlluminationIntegrator(), u.sobolSampler(64), u.triangleFilter(), u.imageFilm(write_location + direct_name + ".png"), u.perspectiveCamera(), u.cornellBoxWorld(at))
+        depth_scene_file_content = u.makePBRT(u.depthIntegrator(), u.sobolSampler(64), u.triangleFilter(), u.imageFilm(write_location + depth_name + ".pfm"), u.perspectiveCamera(), u.cornellBoxWorld(at))
+        gt_scene_file_content = u.makePBRT(u.pathTracingIntegrator(), u.sobolSampler(512), u.triangleFilter(), u.imageFilm(write_location + gt_name + ".png"), u.perspectiveCamera(), u.cornellBoxWorld(at))
+        save_scene_file(albedo_scene_file_content, "scenefiles\\sphere_in_cornell\\" + albedo_name + ".pbrt")
+        save_scene_file(normal_scene_file_content, "scenefiles\\sphere_in_cornell\\" + normal_name + ".pbrt")
+        save_scene_file(direct_scene_file_content, "scenefiles\\sphere_in_cornell\\" + direct_name + ".pbrt")
+        save_scene_file(depth_scene_file_content, "scenefiles\\sphere_in_cornell\\" + depth_name + ".pbrt")
+        save_scene_file(gt_scene_file_content, "scenefiles\\sphere_in_cornell\\" + gt_name + ".pbrt")
         counter += 1
         name += 1
     return name
