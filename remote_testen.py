@@ -17,19 +17,20 @@ key = "C:\\Users\\Michi\\.ssh\\id_rsa"
 password = open("C:\\Users\\Michi\\Documents\\school\\Thesis-stuff\\wachtwoord.txt", 'r').read().rstrip()
 hostnames = ["aalst", "aarlen", "alken", "ans", "antwerpen", "asse", "aubel", "balen", "bergen", "bevekom", "beveren",
              "bierbeek", "binche", "borgworm", "brugge", "charleroi", "chimay", "damme", "diest", "dinant", "doornik",
-             "dour", "durbuy", "eeklo", "eupen", "fleurus", "genk", "gent", "gouvy", "haacht", "halle", "ham",
+             "dour", "durbuy", "eeklo", "eupen", "fleurus", "geel", "genk", "gent", "gouvy", "haacht", "halle", "ham",
              "hamme", "hasselt", "hastiere", "heers", "heist", "herent", "hoei", "hove", "ieper", "kaprijke", "komen",
-             "laarne", "lanaken", "libin", "libramont", "lier", "lint", "luik", "maaseik", "malle",
+             "laarne", "lanaken", "libin", "libramont", "lier", "lint", "lommel", "luik", "maaseik", "malle",
              "mechelen", "moeskroen", "musson", "namen", "nijvel", "ohey", "olen", "ottignies", "overpelt", "perwez",
              "pittem", "riemst", "rixensart", "roeselare", "ronse", "schoten", "spa", "stavelot", "temse", "terhulpen",
              "tienen", "torhout", "tremelo", "turnhout", "veurne", "vielsalm", "vilvoorde", "voeren", "waterloo",
-             "waver"]  # zwalm is down
-# geel is down
-# lommel is overloaded
+             "waver", "zwalm"]
 # behalve yvoir
 input_remote_dir = "/home/r0705259/Thesis/scenefiles"
 output_remote_dir = "/home/r0705259/Thesis/trainingdata"
 pbrt_remote_dir = "/home/r0705259/Thesis/PBRTmod/build"
+
+
+PFM_buffers = ["depth", "normal"]
 
 
 class ConnectionThread(threading.Thread):
@@ -50,13 +51,21 @@ class ConnectionThread(threading.Thread):
                                               connect_kwargs={"key_filename": key, "password": password}))
 
             # draai pbrt
-            run_command = "./pbrt "
-            for current_job in self.job_list:
-                run_command += input_remote_dir + "/" + current_job + ".pbrt "
-            run_command += " --quiet"
-            with c.cd(pbrt_remote_dir):
-                c.run(run_command)
+            # run_command = "./pbrt "
+            # for current_job in self.job_list:
+            #     run_command += input_remote_dir + "/" + current_job + ".pbrt "
+            # run_command += " --quiet"
+            # with c.cd(pbrt_remote_dir):
+            #     c.run(run_command)
 
+            run_command = "cd " + pbrt_remote_dir + "; "
+            for current_job in self.job_list:
+                run_command += "./pbrt " + input_remote_dir + "/" + current_job + ".pbrt --quiet; "
+                if any(bf in current_job for bf in PFM_buffers):  # TODO lelijk
+                    run_command += "mv " + current_job + ".pfm " + output_remote_dir + "/" + current_job + ".pfm; "
+                else:
+                    run_command += "mv " + current_job + ".png " + output_remote_dir + "/" + current_job + ".png; "
+            c.run(run_command)
 
             # sluit connectie
             c.close()

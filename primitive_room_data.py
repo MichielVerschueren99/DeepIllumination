@@ -4,9 +4,9 @@ import subprocess
 from termcolor import cprint
 import util as u
 
-train_amount = 70
-val_amount = 0
-test_amount = 0
+train_amount = 1600
+val_amount = 400
+test_amount = 30
 
 write_location = "/home/r0705259/Thesis/trainingdata/"
 
@@ -62,7 +62,7 @@ def primitive_room():
     counter = 0
     per_dataset_counter = 0
     dataset = "train"
-    while counter < train_amount:
+    while counter < train_amount + test_amount + val_amount:
 
         if counter == train_amount:
             dataset = "test"
@@ -118,15 +118,15 @@ def generate_data(dataset, camera, world, name):
     gt_name = "{}_gt_{}".format(dataset, name)
 
     albedo_scene_file_content = u.makePBRT(u.albedoIntegrator(), u.sobolSampler(64), u.triangleFilter(),
-                                           u.imageFilm(write_location + albedo_name + ".png"), camera, world)
+                                           u.imageFilm(albedo_name + ".png"), camera, world)
     normal_scene_file_content = u.makePBRT(u.normalIntegrator(), u.sobolSampler(64), u.triangleFilter(),
-                                           u.imageFilm(write_location + normal_name + ".pfm"), camera, world)
+                                           u.imageFilm(normal_name + ".pfm"), camera, world)
     direct_scene_file_content = u.makePBRT(u.directIlluminationIntegrator(), u.sobolSampler(64), u.triangleFilter(),
-                                           u.imageFilm(write_location + direct_name + ".png"), camera, world)
+                                           u.imageFilm(direct_name + ".png"), camera, world)
     depth_scene_file_content = u.makePBRT(u.depthIntegrator(), u.sobolSampler(64), u.triangleFilter(),
-                                          u.imageFilm(write_location + depth_name + ".pfm"), camera, world)
+                                          u.imageFilm(depth_name + ".pfm"), camera, world)
     gt_scene_file_content = u.makePBRT(u.pathTracingIntegrator(), u.sobolSampler(512), u.triangleFilter(),
-                                       u.imageFilm(write_location + gt_name + ".png"), camera, world)
+                                       u.imageFilm(gt_name + ".png"), camera, world)
     save_scene_file(albedo_scene_file_content, "scenefiles\\primitive_room\\" + albedo_name + ".pbrt")
     save_scene_file(normal_scene_file_content, "scenefiles\\primitive_room\\" + normal_name + ".pbrt")
     save_scene_file(direct_scene_file_content, "scenefiles\\primitive_room\\" + direct_name + ".pbrt")
