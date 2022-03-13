@@ -1,15 +1,11 @@
 import os
 import random
-import subprocess
 from math import floor
-
-from paramiko import SSHClient, AutoAddPolicy
-from scp import SCPClient
-from termcolor import cprint
-import util as u
 import threading
 from fabric import *
 import time
+import zipfile
+import shutil
 
 dataset_name = "primitive_room"
 
@@ -32,12 +28,12 @@ pbrt_remote_dir = "/home/r0705259/Thesis/PBRTmod/build"
 
 PFM_buffers = ["depth", "normal"]
 
-
 class ConnectionThread(threading.Thread):
     def __init__(self, hostname, job_list):
         threading.Thread.__init__(self)
         self.hostname = hostname
         self.job_list = job_list
+        self.done = False
 
     def run(self):
 
@@ -49,14 +45,6 @@ class ConnectionThread(threading.Thread):
                            connect_kwargs={"key_filename": key, "password": password, "banner_timeout": 60000},
                            gateway=Connection('r0705259@st.cs.kuleuven.be',
                                               connect_kwargs={"key_filename": key, "password": password}))
-
-            # draai pbrt
-            # run_command = "./pbrt "
-            # for current_job in self.job_list:
-            #     run_command += input_remote_dir + "/" + current_job + ".pbrt "
-            # run_command += " --quiet"
-            # with c.cd(pbrt_remote_dir):
-            #     c.run(run_command)
 
             run_command = "cd " + pbrt_remote_dir + "; "
             for current_job in self.job_list:
@@ -112,6 +100,20 @@ if __name__ == "__main__":
                            gateway=Connection('r0705259@st.cs.kuleuven.be',
                                               connect_kwargs={"key_filename": key, "password": password}))
 
+    # verwijder inhoud van scenefiles en trainingdata directories
+    up_down_c.run("rm -r /home/r0705259/Thesis/trainingdata && mkdir /home/r0705259/Thesis/trainingdata")
+    up_down_c.run("rm -r /home/r0705259/Thesis/scenefiles && mkdir /home/r0705259/Thesis/scenefiles")
+
+    # upload .pbrt files
+    print("zipping scenefiles...")
+    shutil.make_archive("scenefiles", 'zip', 'C:\\Users\\Michi\\PycharmProjects\\DeepIllumination\\scenefiles\\' + dataset_name)
+    print("uploading scenefiles...")
+    up_down_c.put("scenefiles.zip", input_remote_dir)
+    os.remove("scenefiles.zip")
+    with up_down_c.cd("/home/r0705259/Thesis/scenefiles"):
+        up_down_c.run("unzip -q scenefiles.zip && rm scenefiles.zip")
+    print("scenefiles uploaded")
+
     # bepaal verdeling van taken over hosts
     amount_of_samples = len(global_job_list_per_buffer[0])
     amount_of_hosts = len(hostnames)
@@ -121,19 +123,8 @@ if __name__ == "__main__":
         samples_per_host = floor(amount_of_samples / amount_of_hosts)
     remainder = amount_of_samples % amount_of_hosts
 
-    # verwijder inhoud van scenefiles en trainingdata directories
-    up_down_c.run("rm -rf /home/r0705259/Thesis/trainingdata && mkdir /home/r0705259/Thesis/trainingdata")
-    up_down_c.run("rm -rf /home/r0705259/Thesis/scenefiles && mkdir /home/r0705259/Thesis/scenefiles")
-
-    # upload .pbrt files
-    progress_counter = 0
-    for j in global_job_list:
-        input_local_path = 'C:\\Users\\Michi\\PycharmProjects\\DeepIllumination\\scenefiles\\' + dataset_name + "\\" + j + ".pbrt"
-        up_down_c.put(input_local_path, input_remote_dir)
-        progress_counter += 1
-        print("{}/{} scenefiles uploaded".format(progress_counter, len(global_job_list)))
-
     # start rendering threads
+    threads = []
     last_job_id_for_this_host = -1
     for i in range(0, amount_of_hosts):
         first_job_id_for_this_host = last_job_id_for_this_host + 1
@@ -150,27 +141,48 @@ if __name__ == "__main__":
                 jobs_for_this_host += b_list[first_job_id_for_this_host:last_job_id_for_this_host + 1]
         random.shuffle(jobs_for_this_host)
         if jobs_for_this_host:
-            ConnectionThread(hostnames[i], jobs_for_this_host).start()
+            t = ConnectionThread(hostnames[i], jobs_for_this_host)
+            threads.append(t)
+            t.start()
         time.sleep(0.2)
 
-    # download renders en verwijder remote kopie
-    progress_counter = 0
-    while progress_counter < len(global_job_list):
-        time.sleep(5)
+    #dit is gewoon om te kijken hoeveel er remote al klaar is
+    while threads:
         with up_down_c.cd("/home/r0705259/Thesis/trainingdata"):
-            finished_renders = up_down_c.run("ls", hide='out').stdout.splitlines()
-        for render in finished_renders:
-            output_local_dir = 'C:\\Users\\Michi\\PycharmProjects\\DeepIllumination\\dataset\\' + dataset_name + "\\" + render.replace(
-                "_", "\\")
-            up_down_c.get(output_remote_dir + "/" + render, output_local_dir)
-            progress_counter += 1
-            with up_down_c.cd("/home/r0705259/Thesis/trainingdata"):
-                up_down_c.run("rm " + render)
+            amount_done = up_down_c.run("ls -1 | wc -l", hide='out').stdout
+            amount_done = amount_done[:-1]
+        print("{}/{} renders completed".format(amount_done, len(global_job_list)))
+        time.sleep(10)
+        for t in threads:
+            if not t.is_alive():
+                t.done = True
+        threads = [t for t in threads if not t.done]
 
-            print("{}/{} renders completed".format(progress_counter, len(global_job_list)))
 
-    # verwijder inhoud van scenefiles en trainingdata directories
-    up_down_c.run("rm -rf /home/r0705259/Thesis/trainingdata && mkdir /home/r0705259/Thesis/trainingdata")
+    #download en extract de batch
+    with up_down_c.cd("/home/r0705259/Thesis"):
+        print("downloading batch...")
+        up_down_c.run("zip -9 -y -r -q /tmp/batch.zip trainingdata/", hide='out')
+        up_down_c.get("/tmp/batch.zip", 'C:\\Users\\Michi\\PycharmProjects\\DeepIllumination\\dataset\\')
+        print("batch downloaded")
+        up_down_c.run("rm -rf /tmp/batch.zip")
+        up_down_c.run("rm -rf /home/r0705259/Thesis/trainingdata && mkdir /home/r0705259/Thesis/trainingdata")
+
+    print("unzipping batch...")
+    with zipfile.ZipFile("C:\\Users\\Michi\\PycharmProjects\\DeepIllumination\\dataset\\batch.zip", 'r') as zip_ref:
+        zip_ref.extractall("C:\\Users\\Michi\\Documents\\school\\Thesis-stuff\\temp")  # TODO andere map?
+    os.remove("C:\\Users\\Michi\\PycharmProjects\\DeepIllumination\\dataset\\batch.zip")
+    for render in os.listdir("C:\\Users\\Michi\\Documents\\school\\Thesis-stuff\\temp\\trainingdata"):
+
+        output_local_dir = 'C:\\Users\\Michi\\PycharmProjects\\DeepIllumination\\dataset\\' + dataset_name + "\\" + render.replace(
+            "_", "\\")
+        if os.path.exists(output_local_dir):
+            os.remove(output_local_dir)
+        os.rename("C:\\Users\\Michi\\Documents\\school\\Thesis-stuff\\temp\\trainingdata\\" + render, output_local_dir)
+
+    print("download completed")
+
+    # verwijder inhoud van scenefiles directory
     up_down_c.run("rm -rf /home/r0705259/Thesis/scenefiles && mkdir /home/r0705259/Thesis/scenefiles")
 
     # sluit connectie

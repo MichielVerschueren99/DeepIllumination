@@ -8,9 +8,9 @@ import torch.nn as nn
 import torch.optim as optim
 import torch.backends.cudnn as cudnn
 import torchvision
-
+from datetime import datetime
 from data import DataLoaderHelper
-import sys
+import pytz
 from torch.utils.data import DataLoader
 from torch.autograd import Variable
 from model import G, D, weights_init
@@ -24,7 +24,7 @@ if __name__ == "__main__":
     parser.add_argument('--dataset', required=True, help='output from unity')
     parser.add_argument('--dataset_directory', type=str, default="", help='give a custom dataset directory')
     parser.add_argument('--keep_every_checkpoint', type=bool, default=False, help='keep the checkpoint that is generated after every epoch')
-    parser.add_argument('--windows_filepaths', type=bool, default=True, help='use windows filepaths')
+    parser.add_argument('--windows_filepaths', type=bool, default=False, help='use windows filepaths')
     parser.add_argument('--save_val_images', type=bool, default=False, help='save the resulting images of the validation set') #TODO MOET TRUE ZIJN NORMAAL
     parser.add_argument('--train_batch_size', type=int, default=1, help='batch size for training')
     parser.add_argument('--test_batch_size', type=int, default=1, help='batch size for testing')
@@ -38,7 +38,7 @@ if __name__ == "__main__":
     parser.add_argument('--cuda', action='store_true', help='cuda')
     parser.add_argument('--resume_G', help='resume G')
     parser.add_argument('--resume_D', help='resume D')
-    parser.add_argument('--workers', type=int, default=3, help='number of threads for data loader') #TODO veranderd van 4 naar 3 anders windows errors op desktop?
+    parser.add_argument('--workers', type=int, default=2, help='number of threads for data loader') #TODO veranderd van 4 naar 3 anders windows errors op desktop?
     parser.add_argument('--seed', type=int, default=123, help='random seed')
     parser.add_argument('--lamda', type=int, default=100, help='L1 regularization factor')
     opt = parser.parse_args()
@@ -52,8 +52,6 @@ if __name__ == "__main__":
 
     torch.cuda.manual_seed(opt.seed)
 
-    writer = SummaryWriter("runs\\mnist") #TODO naam + huidige tijd?
-
     print('=> Loading datasets')
 
 
@@ -63,6 +61,10 @@ if __name__ == "__main__":
         slash = "\\"
     else:
         slash = "/"
+
+    tz = pytz.timezone('Europe/Berlin')
+    now = datetime.now(tz).strftime('%d-%m-%Y_%Hh%Mm%Ss')
+    writer = SummaryWriter("runs" + slash + opt.dataset + slash + now)
 
     root_dir = opt.dataset_directory
     if root_dir == "":
@@ -219,14 +221,6 @@ if __name__ == "__main__":
         torch.save({'state_dict_D': netD.state_dict(), 'optimizer_D':optimizerD.state_dict()}, net_d_model_out_path)
         print("Checkpoint saved to {}".format("checkpoint" + opt.dataset))
 
-        if not opt.keep_every_checkpoint:
-            last_net_g_model_out_path = "checkpoint" + slash + opt.dataset + slash + "netG_model_epoch_{}.pth".format(epoch - 1)
-            last_net_d_model_out_path = "checkpoint" + slash + opt.dataset + slash + "netD_model_epoch_{}.pth".format(epoch - 1)
-            if os.path.exists(last_net_d_model_out_path):
-                os.remove(last_net_d_model_out_path)
-            if os.path.exists(last_net_g_model_out_path):
-                os.remove(last_net_g_model_out_path)
-
     def validation(epoch):
         if opt.save_val_images:
             if not os.path.exists("validation"):
@@ -267,7 +261,8 @@ if __name__ == "__main__":
 
     for epoch in range(n_epoch):
         train(epoch+lastEpoch)
-        if epoch % 1 == 0:
-            save_checkpoint(epoch+lastEpoch)
+        if epoch % 1 == 0: # TODO miss terug veranderen zodat steeds de laatste checkpoint wordt bijgehouden (trager maar ge kunt wel eerder stoppen)
+            if opt.keep_every_checkpoint or epoch == opt.n_epoch - 1:
+                save_checkpoint(epoch+lastEpoch)
             validation(epoch+lastEpoch)
         writer.close()
