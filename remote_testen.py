@@ -15,16 +15,18 @@ hostnames = ["aalst", "aarlen", "alken", "ans", "antwerpen", "asse", "aubel", "b
              "bierbeek", "binche", "borgworm", "brugge", "charleroi", "chimay", "damme", "diest", "dinant", "doornik",
              "dour", "durbuy", "eeklo", "eupen", "fleurus", "geel", "genk", "gent", "gouvy", "haacht", "halle", "ham",
              "hamme", "hasselt", "hastiere", "heers", "heist", "herent", "hoei", "hove", "ieper", "kaprijke", "komen",
-             "laarne", "lanaken", "libin", "libramont", "lier", "lint", "lommel", "luik", "maaseik", "malle",
+             "laarne", "libin", "libramont", "lier", "lint", "lommel", "luik", "maaseik", "malle",
              "mechelen", "moeskroen", "musson", "namen", "nijvel", "ohey", "olen", "ottignies", "overpelt", "perwez",
              "pittem", "riemst", "rixensart", "roeselare", "ronse", "schoten", "spa", "stavelot", "temse", "terhulpen",
              "tienen", "torhout", "tremelo", "turnhout", "veurne", "vielsalm", "vilvoorde", "voeren", "waterloo",
              "waver", "zwalm"]
 # behalve yvoir
+# lanaken down
 input_remote_dir = "/home/r0705259/Thesis/scenefiles"
 output_remote_dir = "/home/r0705259/Thesis/trainingdata"
 pbrt_remote_dir = "/home/r0705259/Thesis/PBRTmod/build"
 
+max_batch_size = 13
 
 PFM_buffers = ["depth", "normal"]
 
@@ -37,7 +39,7 @@ class ConnectionThread(threading.Thread):
 
     def run(self):
 
-        print("Starting " + self.hostname)
+        print("starting " + self.hostname + "...")
 
         try:
             # open connectie
@@ -60,12 +62,12 @@ class ConnectionThread(threading.Thread):
         except:
             print("{} failed, assigned renders were: {}".format(self.hostname, self.job_list))
 
-        print("Exiting " + self.hostname)
+        print("exiting " + self.hostname + "...")
 
 
 if __name__ == "__main__":
 
-    print("Starting Main (yvoir)")
+    print("starting main (yvoir)...")
 
     # zoek alle .pbrt files
     root = 'C:\\Users\\Michi\\PycharmProjects\\DeepIllumination\\scenefiles\\' + dataset_name
@@ -94,6 +96,27 @@ if __name__ == "__main__":
     for i in global_job_list_per_buffer:
         assert (len(i) == len(global_job_list_per_buffer[0]))
 
+    # maak lijst die bufferlijst sorteerd per batch
+    global_job_list_per_batch_per_buffer = []
+    total_samples = len(global_job_list_per_buffer[0])
+    max_batch_samples = max_batch_size // len(global_job_list_per_buffer)
+    lowerbound = 0
+    upperbound = max_batch_samples - 1
+    while True:
+        if upperbound >= total_samples - 1:
+            new_batch = []
+            for i in global_job_list_per_buffer:
+                new_batch.append(i[lowerbound:])
+            global_job_list_per_batch_per_buffer.append(new_batch)
+            break
+        else:
+            new_batch = []
+            for i in global_job_list_per_buffer:
+                new_batch.append(i[lowerbound:upperbound+1])
+            global_job_list_per_batch_per_buffer.append(new_batch)
+            lowerbound = upperbound + 1
+            upperbound = upperbound + max_batch_samples
+
     # yvoir voor download en upload
     up_down_c = Connection('r0705259@' + 'yvoir.cs.kotnet.kuleuven.be',
                            connect_kwargs={"key_filename": key, "password": password, "banner_timeout": 60000},
@@ -106,7 +129,8 @@ if __name__ == "__main__":
 
     # upload .pbrt files
     print("zipping scenefiles...")
-    shutil.make_archive("scenefiles", 'zip', 'C:\\Users\\Michi\\PycharmProjects\\DeepIllumination\\scenefiles\\' + dataset_name)
+    shutil.make_archive("scenefiles", 'zip',
+                        'C:\\Users\\Michi\\PycharmProjects\\DeepIllumination\\scenefiles\\' + dataset_name)
     print("uploading scenefiles...")
     up_down_c.put("scenefiles.zip", input_remote_dir)
     os.remove("scenefiles.zip")
@@ -114,77 +138,88 @@ if __name__ == "__main__":
         up_down_c.run("unzip -q scenefiles.zip && rm scenefiles.zip")
     print("scenefiles uploaded")
 
-    # bepaal verdeling van taken over hosts
-    amount_of_samples = len(global_job_list_per_buffer[0])
-    amount_of_hosts = len(hostnames)
-    if amount_of_samples < amount_of_hosts:
-        samples_per_host = 0  # zonder remainder samples
-    else:
-        samples_per_host = floor(amount_of_samples / amount_of_hosts)
-    remainder = amount_of_samples % amount_of_hosts
+    #verwerk elke batch om de beurt
+    batch_counter = 0
+    amount_done_old = 0
+    total_batch_amount = len(global_job_list_per_batch_per_buffer)
+    print("{} batches".format(total_batch_amount))
+    for batch_job_list_per_buffer in global_job_list_per_batch_per_buffer:
 
-    # start rendering threads
-    threads = []
-    last_job_id_for_this_host = -1
-    for i in range(0, amount_of_hosts):
-        first_job_id_for_this_host = last_job_id_for_this_host + 1
-        if i < remainder:
-            last_job_id_for_this_host = first_job_id_for_this_host + samples_per_host
+        # bepaal verdeling van taken over hosts
+        amount_of_samples = len(batch_job_list_per_buffer[0])
+        amount_of_hosts = len(hostnames)
+        if amount_of_samples < amount_of_hosts:
+            samples_per_host = 0  # zonder remainder samples
         else:
-            last_job_id_for_this_host = first_job_id_for_this_host + samples_per_host - 1
+            samples_per_host = floor(amount_of_samples / amount_of_hosts)
+        remainder = amount_of_samples % amount_of_hosts
 
-        jobs_for_this_host = []
-        for b_list in global_job_list_per_buffer:
-            if last_job_id_for_this_host == first_job_id_for_this_host:
-                jobs_for_this_host.append(b_list[first_job_id_for_this_host])
+        # start rendering threads
+        threads = []
+        last_job_id_for_this_host = -1
+        for i in range(0, amount_of_hosts):
+            first_job_id_for_this_host = last_job_id_for_this_host + 1
+            if i < remainder:
+                last_job_id_for_this_host = first_job_id_for_this_host + samples_per_host
             else:
-                jobs_for_this_host += b_list[first_job_id_for_this_host:last_job_id_for_this_host + 1]
-        random.shuffle(jobs_for_this_host)
-        if jobs_for_this_host:
-            t = ConnectionThread(hostnames[i], jobs_for_this_host)
-            threads.append(t)
-            t.start()
-        time.sleep(0.2)
+                last_job_id_for_this_host = first_job_id_for_this_host + samples_per_host - 1
 
-    #dit is gewoon om te kijken hoeveel er remote al klaar is
-    while threads:
-        with up_down_c.cd("/home/r0705259/Thesis/trainingdata"):
-            amount_done = up_down_c.run("ls -1 | wc -l", hide='out').stdout
-            amount_done = amount_done[:-1]
-        print("{}/{} renders completed".format(amount_done, len(global_job_list)))
-        time.sleep(10)
-        for t in threads:
-            if not t.is_alive():
-                t.done = True
-        threads = [t for t in threads if not t.done]
+            jobs_for_this_host = []
+            for b_list in batch_job_list_per_buffer:
+                if last_job_id_for_this_host == first_job_id_for_this_host:
+                    jobs_for_this_host.append(b_list[first_job_id_for_this_host])
+                else:
+                    jobs_for_this_host += b_list[first_job_id_for_this_host:last_job_id_for_this_host + 1]
+            random.shuffle(jobs_for_this_host)
+            if jobs_for_this_host:
+                t = ConnectionThread(hostnames[i], jobs_for_this_host)
+                threads.append(t)
+                t.start()
+            time.sleep(0.2)
+
+        #dit is gewoon om te kijken hoeveel er al klaar is
+        while threads:
+            with up_down_c.cd("/home/r0705259/Thesis/trainingdata"):
+                amount_done = up_down_c.run("ls -1 | wc -l", hide='out').stdout
+                amount_done = int(amount_done[:-1])
+            print("{}/{} renders completed".format(amount_done_old + amount_done, len(global_job_list)))
+            time.sleep(10)
+            for t in threads:
+                if not t.is_alive():
+                    t.done = True
+            threads = [t for t in threads if not t.done]
 
 
-    #download en extract de batch
-    with up_down_c.cd("/home/r0705259/Thesis"):
-        print("downloading batch...")
-        up_down_c.run("zip -9 -y -r -q /tmp/batch.zip trainingdata/", hide='out')
-        up_down_c.get("/tmp/batch.zip", 'C:\\Users\\Michi\\PycharmProjects\\DeepIllumination\\dataset\\')
-        print("batch downloaded")
-        up_down_c.run("rm -rf /tmp/batch.zip")
-        up_down_c.run("rm -rf /home/r0705259/Thesis/trainingdata && mkdir /home/r0705259/Thesis/trainingdata")
+        #download en extract de batch
+        with up_down_c.cd("/home/r0705259/Thesis"):
+            print("downloading batch...")
+            up_down_c.run("zip -9 -y -r -q /tmp/batch.zip trainingdata/", hide='out')
+            up_down_c.get("/tmp/batch.zip", 'C:\\Users\\Michi\\PycharmProjects\\DeepIllumination\\dataset\\')
+            print("batch downloaded")
+            up_down_c.run("rm -rf /tmp/batch.zip")
+            up_down_c.run("rm -rf /home/r0705259/Thesis/trainingdata && mkdir /home/r0705259/Thesis/trainingdata")
 
-    print("unzipping batch...")
-    with zipfile.ZipFile("C:\\Users\\Michi\\PycharmProjects\\DeepIllumination\\dataset\\batch.zip", 'r') as zip_ref:
-        zip_ref.extractall("C:\\Users\\Michi\\Documents\\school\\Thesis-stuff\\temp")  # TODO andere map?
-    os.remove("C:\\Users\\Michi\\PycharmProjects\\DeepIllumination\\dataset\\batch.zip")
-    for render in os.listdir("C:\\Users\\Michi\\Documents\\school\\Thesis-stuff\\temp\\trainingdata"):
+        print("unzipping batch...")
+        with zipfile.ZipFile("C:\\Users\\Michi\\PycharmProjects\\DeepIllumination\\dataset\\batch.zip", 'r') as zip_ref:
+            zip_ref.extractall("C:\\Users\\Michi\\Documents\\school\\Thesis-stuff\\temp")  # TODO andere map?
+        os.remove("C:\\Users\\Michi\\PycharmProjects\\DeepIllumination\\dataset\\batch.zip")
+        for render in os.listdir("C:\\Users\\Michi\\Documents\\school\\Thesis-stuff\\temp\\trainingdata"):
 
-        output_local_dir = 'C:\\Users\\Michi\\PycharmProjects\\DeepIllumination\\dataset\\' + dataset_name + "\\" + render.replace(
-            "_", "\\")
-        if os.path.exists(output_local_dir):
-            os.remove(output_local_dir)
-        os.rename("C:\\Users\\Michi\\Documents\\school\\Thesis-stuff\\temp\\trainingdata\\" + render, output_local_dir)
+            output_local_dir = 'C:\\Users\\Michi\\PycharmProjects\\DeepIllumination\\dataset\\' + dataset_name + "\\" + render.replace(
+                "_", "\\")
+            if os.path.exists(output_local_dir):
+                os.remove(output_local_dir)
+            os.rename("C:\\Users\\Michi\\Documents\\school\\Thesis-stuff\\temp\\trainingdata\\" + render, output_local_dir)
 
-    print("download completed")
+        batch_counter += 1
+        amount_done_old += len(global_job_list_per_buffer) * len(batch_job_list_per_buffer[0])
+        print("batch {}/{} done".format(batch_counter, total_batch_amount))
 
     # verwijder inhoud van scenefiles directory
     up_down_c.run("rm -rf /home/r0705259/Thesis/scenefiles && mkdir /home/r0705259/Thesis/scenefiles")
 
     # sluit connectie
     up_down_c.close()
-    print("Exiting Main (yvoir)")
+
+
+    print("exiting main (yvoir)...")

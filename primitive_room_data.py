@@ -4,9 +4,9 @@ import subprocess
 from termcolor import cprint
 import util as u
 
-train_amount = 1500
-val_amount = 500
-test_amount = 20
+train_amount = 6
+val_amount = 0
+test_amount = 0
 
 write_location = "/home/r0705259/Thesis/trainingdata/"
 
