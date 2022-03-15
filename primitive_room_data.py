@@ -4,9 +4,9 @@ import subprocess
 from termcolor import cprint
 import util as u
 
-train_amount = 6
-val_amount = 0
-test_amount = 0
+train_amount = 2000
+val_amount = 500
+test_amount = 30
 
 write_location = "/home/r0705259/Thesis/trainingdata/"
 
@@ -93,7 +93,7 @@ def primitive_room():
 
         world = world + '\n' + u.cornellBoxLight()
 
-        camera_position = u.generate_random_list(-0.9, 0.9, 3)
+        camera_position = u.generate_random_list(0.35, 0.95, 3)
         camera_position[1] = 0.4
 
         camera = u.lookAtPerspectiveCamera(camera_position, [0, 0, 0], u.generate_random_list(0, 1, 3), 45)
@@ -116,22 +116,26 @@ def generate_data(dataset, camera, world, name):
     direct_name = "{}_direct_{}".format(dataset, name)
     depth_name = "{}_depth_{}".format(dataset, name)
     gt_name = "{}_gt_{}".format(dataset, name)
+    indirect_name = "{}_indirect_{}".format(dataset, name)
 
-    albedo_scene_file_content = u.makePBRT(u.albedoIntegrator(), u.sobolSampler(64), u.triangleFilter(),
+    albedo_scene_file_content = u.makePBRT(u.albedoIntegrator(), u.stratifiedSampler(), u.triangleFilter(),
                                            u.imageFilm(albedo_name + ".png"), camera, world)
-    normal_scene_file_content = u.makePBRT(u.normalIntegrator(), u.sobolSampler(64), u.triangleFilter(),
+    normal_scene_file_content = u.makePBRT(u.normalIntegrator(), u.stratifiedSampler(), u.triangleFilter(),
                                            u.imageFilm(normal_name + ".pfm"), camera, world)
-    direct_scene_file_content = u.makePBRT(u.directIlluminationIntegrator(), u.sobolSampler(64), u.triangleFilter(),
+    direct_scene_file_content = u.makePBRT(u.directIlluminationIntegrator(), u.stratifiedSampler(), u.triangleFilter(),
                                            u.imageFilm(direct_name + ".png"), camera, world)
-    depth_scene_file_content = u.makePBRT(u.depthIntegrator(), u.sobolSampler(64), u.triangleFilter(),
+    depth_scene_file_content = u.makePBRT(u.depthIntegrator(), u.stratifiedSampler(), u.triangleFilter(),
                                           u.imageFilm(depth_name + ".pfm"), camera, world)
-    gt_scene_file_content = u.makePBRT(u.pathTracingIntegrator(), u.sobolSampler(512), u.triangleFilter(),
+    gt_scene_file_content = u.makePBRT(u.pathTracingIntegrator(), u.stratifiedSampler(23, 23), u.triangleFilter(),
                                        u.imageFilm(gt_name + ".png"), camera, world)
+    indirect_scene_file_content = u.makePBRT(u.indirectIlluminationIntegrator(), u.stratifiedSampler(23, 23), u.triangleFilter(),
+                                       u.imageFilm(indirect_name + ".png"), camera, world)
     save_scene_file(albedo_scene_file_content, "scenefiles\\primitive_room\\" + albedo_name + ".pbrt")
     save_scene_file(normal_scene_file_content, "scenefiles\\primitive_room\\" + normal_name + ".pbrt")
     save_scene_file(direct_scene_file_content, "scenefiles\\primitive_room\\" + direct_name + ".pbrt")
     save_scene_file(depth_scene_file_content, "scenefiles\\primitive_room\\" + depth_name + ".pbrt")
     save_scene_file(gt_scene_file_content, "scenefiles\\primitive_room\\" + gt_name + ".pbrt")
+    save_scene_file(indirect_scene_file_content, "scenefiles\\primitive_room\\" + indirect_name + ".pbrt")
 
 
 def save_scene_file(scene_file_content, path):

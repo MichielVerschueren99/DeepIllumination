@@ -83,18 +83,6 @@ def read_pfm(file):
     shape = (height, width, 3) if color else (height, width)
     return np.reshape(data, shape)
 
-
-#def makePBRT(integrator, sampler, filter, film, camera, world):
-#    return """Integrator {}
-#Sampler {}
-#PixelFilter {}
-#Film {}
-#Camera {}
-#WorldBegin
-#{}
-#WorldEnd""".format(integrator, sampler, filter, film, camera, world)
-
-#oude versie
 def makePBRT(integrator, sampler, filter, film, camera, world):
     return """Integrator {}
 Sampler {}
@@ -124,9 +112,15 @@ def albedoIntegrator():
 def directIlluminationIntegrator():
     return "\"directlighting\""
 
+def indirectIlluminationIntegrator(maxdepth=65):
+    return "\"indirectlighting\" \"integer maxdepth\" [ {} ]".format(maxdepth)
+
 
 def sobolSampler(samples=64):
     return "\"sobol\" \"integer pixelsamples\" [ {} ]".format(samples)
+
+def stratifiedSampler(xsamples=8, ysamples=8):
+    return "\"stratified\" \"integer xsamples\" [ {} ] \"integer ysamples\" [ {} ]".format(xsamples, ysamples)
 
 
 def triangleFilter(xwidth=1, ywidth=1):

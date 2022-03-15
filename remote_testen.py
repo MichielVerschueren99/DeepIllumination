@@ -15,18 +15,18 @@ hostnames = ["aalst", "aarlen", "alken", "ans", "antwerpen", "asse", "aubel", "b
              "bierbeek", "binche", "borgworm", "brugge", "charleroi", "chimay", "damme", "diest", "dinant", "doornik",
              "dour", "durbuy", "eeklo", "eupen", "fleurus", "geel", "genk", "gent", "gouvy", "haacht", "halle", "ham",
              "hamme", "hasselt", "hastiere", "heers", "heist", "herent", "hoei", "hove", "ieper", "kaprijke", "komen",
-             "laarne", "libin", "libramont", "lier", "lint", "lommel", "luik", "maaseik", "malle",
+             "laarne", "lanaken", "libin", "libramont", "lier", "lint", "lommel", "luik", "malle",
              "mechelen", "moeskroen", "musson", "namen", "nijvel", "ohey", "olen", "ottignies", "overpelt", "perwez",
              "pittem", "riemst", "rixensart", "roeselare", "ronse", "schoten", "spa", "stavelot", "temse", "terhulpen",
              "tienen", "torhout", "tremelo", "turnhout", "veurne", "vielsalm", "vilvoorde", "voeren", "waterloo",
              "waver", "zwalm"]
 # behalve yvoir
-# lanaken down
+# maaseik down
 input_remote_dir = "/home/r0705259/Thesis/scenefiles"
 output_remote_dir = "/home/r0705259/Thesis/trainingdata"
 pbrt_remote_dir = "/home/r0705259/Thesis/PBRTmod/build"
 
-max_batch_size = 13
+max_batch_size = 8000
 
 PFM_buffers = ["depth", "normal"]
 
@@ -90,7 +90,7 @@ if __name__ == "__main__":
             buffers.append(buffer)
     global_job_list_per_buffer = []
     for buffer in buffers:
-        global_job_list_per_buffer.append(list(filter(lambda k: buffer in k, global_job_list)))
+        global_job_list_per_buffer.append(list(filter(lambda k: buffer == k[k.index('_') + 1:k.rindex('_')], global_job_list)))
 
     # check dat we voor alle buffers evenveel samples hebben
     for i in global_job_list_per_buffer:
