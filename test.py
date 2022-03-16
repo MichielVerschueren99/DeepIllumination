@@ -14,6 +14,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='DeepRendering-implementation')
     parser.add_argument('--dataset', required=True, help='unity')
     parser.add_argument('--model', type=str, required=True, help='model file')
+    parser.add_argument('--add_direct_illumination', type=bool, default=False, help='add direct illumination to saved image?')
     parser.add_argument('--n_channel_input', type=int, default=3, help='input channel')
     parser.add_argument('--n_channel_output', type=int, default=3, help='output channel')
     parser.add_argument('--n_generator_filters', type=int, default=64, help="number of generator filters")
