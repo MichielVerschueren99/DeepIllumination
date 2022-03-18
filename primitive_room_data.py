@@ -119,17 +119,17 @@ def generate_data(dataset, camera, world, name):
     indirect_name = "{}_indirect_{}".format(dataset, name)
 
     albedo_scene_file_content = u.makePBRT(u.albedoIntegrator(), u.stratifiedSampler(), u.triangleFilter(),
-                                           u.imageFilm(albedo_name + ".png"), camera, world)
+                                           u.imageFilm(albedo_name + ".exr"), camera, world)
     normal_scene_file_content = u.makePBRT(u.normalIntegrator(), u.stratifiedSampler(), u.triangleFilter(),
-                                           u.imageFilm(normal_name + ".pfm"), camera, world)
+                                           u.imageFilm(normal_name + ".exr"), camera, world)
     direct_scene_file_content = u.makePBRT(u.directIlluminationIntegrator(), u.stratifiedSampler(), u.triangleFilter(),
-                                           u.imageFilm(direct_name + ".png"), camera, world)
+                                           u.imageFilm(direct_name + ".exr"), camera, world)
     depth_scene_file_content = u.makePBRT(u.depthIntegrator(), u.stratifiedSampler(), u.triangleFilter(),
-                                          u.imageFilm(depth_name + ".pfm"), camera, world)
+                                          u.imageFilm(depth_name + ".exr"), camera, world)
     gt_scene_file_content = u.makePBRT(u.pathTracingIntegrator(), u.stratifiedSampler(23, 23), u.triangleFilter(),
-                                       u.imageFilm(gt_name + ".png"), camera, world)
+                                       u.imageFilm(gt_name + ".exr"), camera, world)
     indirect_scene_file_content = u.makePBRT(u.indirectIlluminationIntegrator(), u.stratifiedSampler(23, 23), u.triangleFilter(),
-                                       u.imageFilm(indirect_name + ".png"), camera, world)
+                                       u.imageFilm(indirect_name + ".exr"), camera, world)
     save_scene_file(albedo_scene_file_content, "scenefiles\\primitive_room\\" + albedo_name + ".pbrt")
     save_scene_file(normal_scene_file_content, "scenefiles\\primitive_room\\" + normal_name + ".pbrt")
     save_scene_file(direct_scene_file_content, "scenefiles\\primitive_room\\" + direct_name + ".pbrt")

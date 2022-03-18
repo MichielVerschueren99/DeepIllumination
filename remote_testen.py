@@ -7,7 +7,7 @@ import time
 import zipfile
 import shutil
 
-dataset_name = "primitive_room"
+dataset_name = "primitive_room_2"
 
 key = "C:\\Users\\Michi\\.ssh\\id_rsa"
 password = open("C:\\Users\\Michi\\Documents\\school\\Thesis-stuff\\wachtwoord.txt", 'r').read().rstrip()
@@ -15,20 +15,18 @@ hostnames = ["aalst", "aarlen", "alken", "ans", "antwerpen", "asse", "aubel", "b
              "bierbeek", "binche", "borgworm", "brugge", "charleroi", "chimay", "damme", "diest", "dinant", "doornik",
              "dour", "durbuy", "eeklo", "eupen", "fleurus", "geel", "genk", "gent", "gouvy", "haacht", "halle", "ham",
              "hamme", "hasselt", "hastiere", "heers", "heist", "herent", "hoei", "hove", "ieper", "kaprijke", "komen",
-             "laarne", "lanaken", "libin", "libramont", "lier", "lint", "lommel", "luik", "malle",
+             "laarne", "lanaken", "libin", "libramont", "lier", "lint", "lommel", "luik", "maaseik", "malle",
              "mechelen", "moeskroen", "musson", "namen", "nijvel", "ohey", "olen", "ottignies", "overpelt", "perwez",
              "pittem", "riemst", "rixensart", "roeselare", "ronse", "schoten", "spa", "stavelot", "temse", "terhulpen",
              "tienen", "torhout", "tremelo", "turnhout", "veurne", "vielsalm", "vilvoorde", "voeren", "waterloo",
-             "waver", "zwalm"]
+             "waver"]
 # behalve yvoir
-# maaseik down
+# zwalm down
 input_remote_dir = "/home/r0705259/Thesis/scenefiles"
 output_remote_dir = "/home/r0705259/Thesis/trainingdata"
 pbrt_remote_dir = "/home/r0705259/Thesis/PBRTmod/build"
 
 max_batch_size = 8000
-
-PFM_buffers = ["depth", "normal"]
 
 class ConnectionThread(threading.Thread):
     def __init__(self, hostname, job_list):
@@ -51,10 +49,7 @@ class ConnectionThread(threading.Thread):
             run_command = "cd " + pbrt_remote_dir + "; "
             for current_job in self.job_list:
                 run_command += "./pbrt " + input_remote_dir + "/" + current_job + ".pbrt --quiet; "
-                if any(bf in current_job for bf in PFM_buffers):  # TODO lelijk
-                    run_command += "mv " + current_job + ".pfm " + output_remote_dir + "/" + current_job + ".pfm; "
-                else:
-                    run_command += "mv " + current_job + ".png " + output_remote_dir + "/" + current_job + ".png; "
+                run_command += "mv " + current_job + ".exr " + output_remote_dir + "/" + current_job + ".exr; "
             c.run(run_command)
 
             # sluit connectie
