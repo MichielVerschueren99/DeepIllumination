@@ -7,31 +7,42 @@ import imageio
 import torch
 import re
 import sys
+import OpenEXR as exr
+import Imath
 
+def load_image(filename):
 
-# filepath is altijd van een png
-def load_image(filepath, extension="png"):
-    if extension == "png":
-        image = imageio.imread(filepath)
-    else:
-        size = len(filepath)
-        actual_filepath = filepath[:size - 4] + ".pfm"
-        image = read_pfm(actual_filepath)
-    if len(image.shape) < 3:
-        image = np.expand_dims(image, axis=2)
-        image = np.repeat(image, 3, axis=2)
-    # alpha kanaal verwijderen indien nodig
-    if image.shape[2] == 4:
-        image = np.delete(image, 3, 2)
+    image_file = exr.InputFile(filename)
+    header = image_file.header()
 
-    image = np.transpose(image, (2, 0, 1))
-    image = torch.from_numpy(image)
-    min = image.min() + 0.0  # TODO ineens was hier + 0.0 nodig anders doet add_ raar om een of andere reden
-    max = image.max() + 0.0
-    image = torch.FloatTensor(image.size()).copy_(image)
-    image.add_(-min).mul_(1.0 / (max - min))
-    image = image.mul_(2).add_(-1)
-    return image
+    dw = header['dataWindow']
+    i_size = (dw.max.y - dw.min.y + 1, dw.max.x - dw.min.x + 1)
+
+    channelData = dict()
+
+    # convert all channels in the image to numpy arrays
+    for c in header['channels']:
+        C = image_file.channel(c, Imath.PixelType(Imath.PixelType.FLOAT))
+        C = np.frombuffer(C, dtype=np.float32)
+        C = np.reshape(C, i_size)
+
+        channelData[c] = C
+
+    colorChannels = ['R', 'G', 'B', 'A'] if 'A' in header['channels'] else ['R', 'G', 'B']
+    img = np.concatenate([channelData[c][..., np.newaxis] for c in colorChannels], axis=2)
+
+    assert 'A' not in header['channels']
+    assert 'Z' not in header['channels']
+
+    img = np.transpose(img, (2, 0, 1))
+    img = torch.from_numpy(img)
+    min = img.min() + 0.0
+    max = img.max() + 0.0
+    img = torch.FloatTensor(img.size()).copy_(img)
+    img.add_(-min).mul_(1.0 / (max - min))
+    img = img.mul_(2).add_(-1)
+
+    return img
 
 
 def save_image(image, filename):

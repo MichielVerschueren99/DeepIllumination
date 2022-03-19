@@ -28,23 +28,25 @@ def readEXR(filename):
     img = np.concatenate([channelData[c][..., np.newaxis] for c in colorChannels], axis=2)
 
     # sanitize image to be in range [0, 1]
-    img = np.where(img < 0.0, 0.0, np.where(img > 1.0, 1, img))
+    #img = np.where(img < 0.0, 0.0, np.where(img > 1.0, 1, img))
 
+    assert 'A' not in header['channels']
     assert 'Z' not in header['channels']
 
     img = np.transpose(img, (2, 0, 1))
     img = torch.from_numpy(img)
-    # min = img.min() + 0.0  # TODO ineens was hier + 0.0 nodig anders doet add_ raar om een of andere reden
-    # max = img.max() + 0.0
-    # img = torch.FloatTensor(img.size()).copy_(img)
-    # img.add_(-min).mul_(1.0 / (max - min))
-    # img = img.mul_(2).add_(-1)
+    min = img.min() + 0.0
+    max = img.max() + 0.0
+    img = torch.FloatTensor(img.size()).copy_(img)
+    img.add_(-min).mul_(1.0 / (max - min))
+    img = img.mul_(2).add_(-1)
 
     return img
 
 
-test = readEXR("D:\\Thesis\\train_gt_1070_indirect.exr")
-image1 = imageio.imread("D:\\Thesis\\train_gt_1070_indirect.png")
-image2 = util.load_image("D:\\Thesis\\train_gt_1070_indirect.pfm", "pfm")
-image3 = util.load_image("D:\\Thesis\\train_gt_1070_indirect.png", "png")
+test = readEXR("C:\\Users\\Michi\\Documents\\school\\Thesis-stuff\\train_gt_1070.exr")
+#test2 = readEXR("C:\\Users\\Michi\\Documents\\school\\Thesis-stuff\\test_depth_23.exr")
+image = util.load_image("C:\\Users\\Michi\\Documents\\school\\Thesis-stuff\\train_gt_1070.pfm", "pfm")
+#image2 = util.load_image("C:\\Users\\Michi\\Documents\\school\\Thesis-stuff\\test_depth_23.pfm", "pfm")
+#base = util.load_image("C:\\Users\\Michi\\Documents\\school\\Thesis-stuff\\7.png")
 print("test")
