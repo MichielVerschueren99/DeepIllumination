@@ -13,7 +13,7 @@ class DataLoaderHelper(data.Dataset):
         self.depth_path = join(image_dir, "depth")
         self.direct_path = join(image_dir, "direct")
         self.normal_path = join(image_dir, "normal")
-        self.gt_path = join(image_dir, "gt")
+        self.gt_path = join(image_dir, "indirect") # TODO DIT TERUG VERANDEREN !!!!
         self.image_filenames = [x for x in listdir(self.albedo_path) if is_image(x)]
 
 
