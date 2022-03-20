@@ -57,7 +57,7 @@ def save_image(image, filename):
 
 
 def is_image(filename):
-    return any(filename.endswith(extension) for extension in [".png", ".jpg"])
+    return any(filename.endswith(extension) for extension in [".png", ".jpg", ".exr"])
 
 
 def read_pfm(file):
