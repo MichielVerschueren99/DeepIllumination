@@ -35,8 +35,8 @@ if __name__ == "__main__":
     for image_name in image_filenames:
         albedo_image = load_image(root_dir + 'albedo\\' + image_name)
         direct_image = load_image(root_dir + 'direct\\' + image_name)
-        normal_image = load_image(root_dir + 'normal\\' + image_name, ".pfm")
-        depth_image = load_image(root_dir + 'depth\\' + image_name, ".pfm")
+        normal_image = load_image(root_dir + 'normal\\' + image_name)
+        depth_image = load_image(root_dir + 'depth\\' + image_name)
         gt_image = load_image(root_dir + 'gt\\' + image_name)
 
         albedo = Variable(albedo_image).view(1, -1, 256, 256).to(device)
@@ -54,4 +54,4 @@ if __name__ == "__main__":
             os.mkdir("result")
         if not os.path.exists(os.path.join("result", opt.dataset)):
             os.mkdir(os.path.join("result", opt.dataset))
-        save_image(out_img, "result\\{}\\{}".format(opt.dataset, image_name))
+        save_image(out_img, "result\\{}\\{}".format(opt.dataset, image_name.replace(".exr", ".png")))

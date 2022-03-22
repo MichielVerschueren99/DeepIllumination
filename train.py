@@ -84,9 +84,41 @@ if __name__ == "__main__":
 
     print('=> Building model')
 
-    netG = G(opt.n_channel_input*4, opt.n_channel_output, opt.n_generator_filters)
+    albedo_samples = []
+    direct_samples = []
+    normal_samples = []
+    depth_samples = []
+    gt_samples = []
+    for (i, images) in enumerate(train_data):
+        (albedo_cpu, direct_cpu, normal_cpu, depth_cpu, gt_cpu) = (images[0], images[1], images[2], images[3], images[4])
+        albedo_samples.append(albedo_cpu)
+        direct_samples.append(direct_cpu)
+        normal_samples.append(normal_cpu)
+        depth_samples.append(depth_cpu)
+        gt_samples.append(gt_cpu)
+    albedo_samples = torch.stack(albedo_samples)
+    direct_samples = torch.stack(direct_samples)
+    normal_samples = torch.stack(normal_samples)
+    depth_samples = torch.stack(depth_samples)
+    gt_samples = torch.stack(gt_samples)
+    means = []
+    stds = []
+    means.append(torch.mean(albedo_samples))
+    means.append(torch.mean(direct_samples))
+    means.append(torch.mean(normal_samples))
+    means.append(torch.mean(depth_samples))
+    means.append(torch.mean(gt_samples))
+    stds.append(torch.std(albedo_samples))
+    stds.append(torch.std(direct_samples))
+    stds.append(torch.std(normal_samples))
+    stds.append(torch.std(depth_samples))
+    stds.append(torch.std(gt_samples))
+
+
+
+    netG = G(opt.n_channel_input*4, opt.n_channel_output, opt.n_generator_filters, means, stds)
     netG.apply(weights_init)
-    netD = D(opt.n_channel_input*4, opt.n_channel_output, opt.n_discriminator_filters)
+    netD = D(opt.n_channel_input*4, opt.n_channel_output, opt.n_discriminator_filters, means, stds)
     netD.apply(weights_init)
 
     criterion = nn.BCELoss()

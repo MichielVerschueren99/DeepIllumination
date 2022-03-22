@@ -36,17 +36,17 @@ def load_image(filename):
 
     img = np.transpose(img, (2, 0, 1))
     img = torch.from_numpy(img)
-    min = img.min() + 0.0
-    max = img.max() + 0.0
-    img = torch.FloatTensor(img.size()).copy_(img)
-    img.add_(-min).mul_(1.0 / (max - min))
-    img = img.mul_(2).add_(-1)
+    # min = img.min() + 0.0
+    # max = img.max() + 0.0
+    # img = torch.FloatTensor(img.size()).copy_(img)
+    # img.add_(-min).mul_(1.0 / (max - min))
+    # img = img.mul_(2).add_(-1)
 
     return img
 
 
 def save_image(image, filename):
-    image = image.add_(1).div_(2)
+    image = image.add_(1).div_(2) #TODO nog veranderen
     image = image.numpy()
     image *= 255.0
     image = image.clip(0, 255)

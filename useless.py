@@ -35,18 +35,31 @@ def readEXR(filename):
 
     img = np.transpose(img, (2, 0, 1))
     img = torch.from_numpy(img)
-    min = img.min() + 0.0
-    max = img.max() + 0.0
-    img = torch.FloatTensor(img.size()).copy_(img)
-    img.add_(-min).mul_(1.0 / (max - min))
-    img = img.mul_(2).add_(-1)
+    # min = img.min() + 0.0
+    # max = img.max() + 0.0
+    # img = torch.FloatTensor(img.size()).copy_(img)
+    # img.add_(-min).mul_(1.0 / (max - min))
+    # img = img.mul_(2).add_(-1)
 
     return img
 
 
-test = readEXR("C:\\Users\\Michi\\Documents\\school\\Thesis-stuff\\train_gt_1070.exr")
-#test2 = readEXR("C:\\Users\\Michi\\Documents\\school\\Thesis-stuff\\test_depth_23.exr")
-image = util.load_image("C:\\Users\\Michi\\Documents\\school\\Thesis-stuff\\train_gt_1070.pfm", "pfm")
-#image2 = util.load_image("C:\\Users\\Michi\\Documents\\school\\Thesis-stuff\\test_depth_23.pfm", "pfm")
-#base = util.load_image("C:\\Users\\Michi\\Documents\\school\\Thesis-stuff\\7.png")
+lijst = []
+
+#lijst.append(readEXR("C:\\Users\\Michi\\Documents\\school\\0.exr"))
+#lijst.append(readEXR("C:\\Users\\Michi\\Documents\\school\\1.exr"))
+
+lijst.append(torch.tensor([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]]))
+lijst.append(torch.tensor([[0.0, -2.0, 334.0], [4, 25.0, 63.0]]))
+
+som = torch.stack(lijst)
+mean = torch.mean(som)
+std = torch.std(som)
+
+som.add_(-mean).mul_(1.0 / std)
+A_mean = torch.full((3, 256, 256), 1.0)
+B_mean = torch.full((3, 256, 256), 3.0)
+C = torch.cat((A_mean, B_mean))
+
+D = torch.sub(B_mean, A_mean)
 print("test")

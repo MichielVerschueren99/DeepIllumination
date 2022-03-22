@@ -11,7 +11,7 @@ def weights_init(m):
 
 
 class G(nn.Module):
-    def __init__(self, n_channel_input, n_channel_output, n_filters):
+    def __init__(self, n_channel_input, n_channel_output, n_filters, norm_means, norm_stds):
         super(G, self).__init__()
         self.conv1 = nn.Conv2d(n_channel_input, n_filters, 4, 2, 1)
         self.conv2 = nn.Conv2d(n_filters, n_filters * 2, 4, 2, 1)
@@ -43,8 +43,25 @@ class G(nn.Module):
 
         self.tanh = nn.Tanh()
 
+        albedo_mean = torch.full((3, 256, 256), norm_means[0])
+        direct_mean = torch.full((3, 256, 256), norm_means[1])
+        normal_mean = torch.full((3, 256, 256), norm_means[2])
+        depth_mean = torch.full((3, 256, 256), norm_means[3])
+        gt_mean = torch.full((3, 256, 256), norm_means[4])
+        self.norm_mean = torch.cat((albedo_mean, direct_mean, normal_mean, depth_mean, gt_mean))
+
+        albedo_std = torch.full((3, 256, 256), norm_stds[0])
+        direct_std = torch.full((3, 256, 256), norm_stds[1])
+        normal_std = torch.full((3, 256, 256), norm_stds[2])
+        depth_std = torch.full((3, 256, 256), norm_stds[3])
+        gt_std = torch.full((3, 256, 256), norm_stds[4])
+        self.norm_std = torch.cat((albedo_std, direct_std, normal_std, depth_std, gt_std))
+
     def forward(self, input):
-        encoder1 = self.conv1(input)
+
+        normalized_input = torch.div(torch.sub(input, self.norm_mean), self.norm_std)
+
+        encoder1 = self.conv1(normalized_input)
         encoder2 = self.batch_norm2(self.conv2(self.leaky_relu(encoder1)))
         encoder3 = self.batch_norm4(self.conv3(self.leaky_relu(encoder2)))
         encoder4 = self.batch_norm8(self.conv4(self.leaky_relu(encoder3)))
@@ -72,7 +89,7 @@ class G(nn.Module):
         return output
 
 class D(nn.Module):
-    def __init__(self, n_channel_input, n_channel_output, n_filters):
+    def __init__(self, n_channel_input, n_channel_output, n_filters, norm_means, norm_stds):
         super(D, self).__init__()
         self.conv1 = nn.Conv2d(n_channel_input + n_channel_output, n_filters, 4, 2, 1)
         self.conv2 = nn.Conv2d(n_filters, n_filters * 2, 4, 2, 1)
@@ -88,11 +105,28 @@ class D(nn.Module):
 
         self.sigmoid = nn.Sigmoid()
 
+        albedo_mean = torch.full((3, 256, 256), norm_means[0])
+        direct_mean = torch.full((3, 256, 256), norm_means[1])
+        normal_mean = torch.full((3, 256, 256), norm_means[2])
+        depth_mean = torch.full((3, 256, 256), norm_means[3])
+        gt_mean = torch.full((3, 256, 256), norm_means[4])
+        self.norm_mean = torch.cat((albedo_mean, direct_mean, normal_mean, depth_mean, gt_mean))
+
+        albedo_std = torch.full((3, 256, 256), norm_stds[0])
+        direct_std = torch.full((3, 256, 256), norm_stds[1])
+        normal_std = torch.full((3, 256, 256), norm_stds[2])
+        depth_std = torch.full((3, 256, 256), norm_stds[3])
+        gt_std = torch.full((3, 256, 256), norm_stds[4])
+        self.norm_std = torch.cat((albedo_std, direct_std, normal_std, depth_std, gt_std))
+
     def forward(self, input):
         encoder1 = self.conv1(input)
         encoder2 = self.batch_norm2(self.conv2(self.leaky_relu(encoder1)))
         encoder3 = self.batch_norm4(self.conv3(self.leaky_relu(encoder2)))
         encoder4 = self.batch_norm8(self.conv4(self.leaky_relu(encoder3)))
         encoder5 = self.conv5(self.leaky_relu(encoder4))
-        output =  self.sigmoid(encoder5)
+        normalized_output = self.sigmoid(encoder5)
+
+        output = torch.add(torch.mul(normalized_output, self.norm_std), self.norm_mean)
+
         return output
