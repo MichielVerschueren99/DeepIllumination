@@ -26,7 +26,7 @@ if __name__ == "__main__":
         device = torch.device("cpu")
 
     netG_model = torch.load(os.getcwd() + '\\checkpoint\\{}'.format(opt.model), map_location=device)
-    netG = G(opt.n_channel_input * 4, opt.n_channel_output, opt.n_generator_filters)
+    netG = G(opt.n_channel_input * 4, opt.n_channel_output, opt.n_generator_filters, netG_model['norm_mean_G'], netG_model['norm_std_G'])
     netG.load_state_dict(netG_model['state_dict_G'])
     root_dir = os.getcwd() + '\\dataset\\{}\\test\\'.format(opt.dataset)
     image_dir = os.getcwd() + '\\dataset\\{}\\test\\albedo'.format(opt.dataset)
@@ -48,10 +48,11 @@ if __name__ == "__main__":
 
         out = netG(torch.cat((albedo, direct, normal, depth), 1))
         out = out.cpu()
-        out_img = out.data[0]
+        out_img_normalized = out.data[0]
+        out_img = netG.unnormalize_gt(out_img_normalized)
 
         if not os.path.exists("result"):
             os.mkdir("result")
         if not os.path.exists(os.path.join("result", opt.dataset)):
             os.mkdir(os.path.join("result", opt.dataset))
-        save_image(out_img, "result\\{}\\{}".format(opt.dataset, image_name.replace(".exr", ".png")))
+        save_image(out_img, "result\\{}\\{}".format(opt.dataset, image_name))

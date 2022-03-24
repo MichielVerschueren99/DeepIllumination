@@ -36,23 +36,34 @@ def load_image(filename):
 
     img = np.transpose(img, (2, 0, 1))
     img = torch.from_numpy(img)
-    # min = img.min() + 0.0
-    # max = img.max() + 0.0
-    # img = torch.FloatTensor(img.size()).copy_(img)
-    # img.add_(-min).mul_(1.0 / (max - min))
-    # img = img.mul_(2).add_(-1)
 
     return img
 
 
-def save_image(image, filename):
-    image = image.add_(1).div_(2) #TODO nog veranderen
-    image = image.numpy()
-    image *= 255.0
-    image = image.clip(0, 255)
-    image = np.transpose(image, (1, 2, 0))
-    image = image.astype(np.uint8)
-    imageio.imsave(filename, image)
+def save_image(values, filename):
+
+    values = values.numpy()
+    values = np.transpose(values, (1, 2, 0))
+
+    channel_names = ['R', 'G', 'B']
+
+    if values.shape[-1] != len(channel_names):
+        raise ValueError(
+            'Number of channels in values does not match channel names (%d, %d)' %
+            (values.shape[-1], len(channel_names)))
+    header = exr.Header(values.shape[1], values.shape[0])
+    try:
+        exr_channel_type = Imath.PixelType(Imath.PixelType.FLOAT)
+    except KeyError:
+        raise TypeError('Unsupported numpy type: %s' % str(values.dtype))
+    header['channels'] = {
+        n: Imath.Channel(exr_channel_type) for n in channel_names
+    }
+    channel_data = [values[..., i] for i in range(values.shape[-1])]
+    img = exr.OutputFile(filename, header)
+    img.writePixels(
+        dict((n, d.tobytes()) for n, d in zip(channel_names, channel_data)))
+    img.close()
     print("Image saved as {}".format(filename))
 
 
