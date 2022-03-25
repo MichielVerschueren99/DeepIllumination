@@ -105,6 +105,33 @@ def read_pfm(file):
     shape = (height, width, 3) if color else (height, width)
     return np.reshape(data, shape)
 
+
+def get_mean_and_std(dataloader):
+    num_batches = 0
+    sums = [0, 0, 0, 0, 0]
+    squared_sums = [0, 0, 0, 0, 0]
+    for (i, images) in enumerate(dataloader):
+        (albedo_cpu, direct_cpu, normal_cpu, depth_cpu, gt_cpu) = (images[0], images[1], images[2], images[3], images[4])
+        sums[0] += torch.mean(albedo_cpu)
+        sums[1] += torch.mean(direct_cpu)
+        sums[2] += torch.mean(normal_cpu)
+        sums[3] += torch.mean(depth_cpu)
+        sums[4] += torch.mean(gt_cpu)
+        squared_sums[0] += torch.mean(albedo_cpu ** 2)
+        squared_sums[1] += torch.mean(direct_cpu ** 2)
+        squared_sums[2] += torch.mean(normal_cpu ** 2)
+        squared_sums[3] += torch.mean(depth_cpu ** 2)
+        squared_sums[4] += torch.mean(gt_cpu ** 2)
+        num_batches += 1
+
+    means = [x / num_batches for x in sums]
+    stds = []
+    for i in range(0, len(squared_sums)):
+        stds.append((squared_sums[i] / num_batches - means[i] ** 2) ** 0.5)
+
+    return means, stds
+
+
 def makePBRT(integrator, sampler, filter, film, camera, world):
     return """Integrator {}
 Sampler {}

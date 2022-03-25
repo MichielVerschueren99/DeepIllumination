@@ -9,6 +9,8 @@ import torch.optim as optim
 import torch.backends.cudnn as cudnn
 import torchvision
 from datetime import datetime
+
+import util
 from data import DataLoaderHelper
 import pytz
 from torch.utils.data import DataLoader
@@ -27,7 +29,7 @@ if __name__ == "__main__":
     parser.add_argument('--windows_filepaths', type=bool, default=False, help='use windows filepaths')
     parser.add_argument('--save_val_images', type=bool, default=False,
                         help='save the resulting images of the validation set')
-    parser.add_argument('--train_batch_size', type=int, default=1, help='batch size for training')
+    parser.add_argument('--train_batch_size', type=int, default=2, help='batch size for training')
     parser.add_argument('--test_batch_size', type=int, default=1, help='batch size for testing')
     parser.add_argument('--n_epoch', type=int, default=200, help='number of iterations')
     parser.add_argument('--n_channel_input', type=int, default=3, help='number of input channels')
@@ -86,36 +88,7 @@ if __name__ == "__main__":
 
     print('=> Computing means & stds')
 
-    albedo_samples = []
-    direct_samples = []
-    normal_samples = []
-    depth_samples = []
-    gt_samples = []
-    for (i, images) in enumerate(train_data):
-        (albedo_cpu, direct_cpu, normal_cpu, depth_cpu, gt_cpu) = (
-        images[0], images[1], images[2], images[3], images[4])
-        albedo_samples.append(albedo_cpu)
-        direct_samples.append(direct_cpu)
-        normal_samples.append(normal_cpu)
-        depth_samples.append(depth_cpu)
-        gt_samples.append(gt_cpu)
-    albedo_samples = torch.stack(albedo_samples)
-    direct_samples = torch.stack(direct_samples)
-    normal_samples = torch.stack(normal_samples)
-    depth_samples = torch.stack(depth_samples)
-    gt_samples = torch.stack(gt_samples)
-    means = []
-    stds = []
-    means.append(torch.mean(albedo_samples))
-    means.append(torch.mean(direct_samples))
-    means.append(torch.mean(normal_samples))
-    means.append(torch.mean(depth_samples))
-    means.append(torch.mean(gt_samples))
-    stds.append(torch.std(albedo_samples))
-    stds.append(torch.std(direct_samples))
-    stds.append(torch.std(normal_samples))
-    stds.append(torch.std(depth_samples))
-    stds.append(torch.std(gt_samples))
+    (means, stds) = util.get_mean_and_std(train_data)
 
     print('=> Building model')
 
