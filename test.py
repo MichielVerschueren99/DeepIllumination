@@ -26,7 +26,7 @@ if __name__ == "__main__":
         device = torch.device("cpu")
 
     netG_model = torch.load(os.getcwd() + '\\checkpoint\\{}'.format(opt.model), map_location=device)
-    netG = G(opt.n_channel_input * 4, opt.n_channel_output, opt.n_generator_filters, netG_model['norm_mean_G'], netG_model['norm_std_G'])
+    netG = G(opt.n_channel_input * 4, opt.n_channel_output, opt.n_generator_filters, netG_model['norm_mean_G'], netG_model['norm_std_G'], device)
     netG.load_state_dict(netG_model['state_dict_G'])
     root_dir = os.getcwd() + '\\dataset\\{}\\test\\'.format(opt.dataset)
     image_dir = os.getcwd() + '\\dataset\\{}\\test\\albedo'.format(opt.dataset)

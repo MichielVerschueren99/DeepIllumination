@@ -11,7 +11,7 @@ def weights_init(m):
 
 
 class G(nn.Module):
-    def __init__(self, n_channel_input, n_channel_output, n_filters, norm_means, norm_stds):
+    def __init__(self, n_channel_input, n_channel_output, n_filters, norm_means, norm_stds, device):
         super(G, self).__init__()
         self.conv1 = nn.Conv2d(n_channel_input, n_filters, 4, 2, 1)
         self.conv2 = nn.Conv2d(n_filters, n_filters * 2, 4, 2, 1)
@@ -48,14 +48,14 @@ class G(nn.Module):
         normal_mean = torch.full((3, 256, 256), norm_means[2])
         depth_mean = torch.full((3, 256, 256), norm_means[3])
         gt_mean = torch.full((3, 256, 256), norm_means[4])
-        self.norm_mean = torch.cat((albedo_mean, direct_mean, normal_mean, depth_mean, gt_mean))
+        self.norm_mean = torch.cat((albedo_mean, direct_mean, normal_mean, depth_mean, gt_mean)).to(device)
 
         albedo_std = torch.full((3, 256, 256), norm_stds[0])
         direct_std = torch.full((3, 256, 256), norm_stds[1])
         normal_std = torch.full((3, 256, 256), norm_stds[2])
         depth_std = torch.full((3, 256, 256), norm_stds[3])
         gt_std = torch.full((3, 256, 256), norm_stds[4])
-        self.norm_std = torch.cat((albedo_std, direct_std, normal_std, depth_std, gt_std))
+        self.norm_std = torch.cat((albedo_std, direct_std, normal_std, depth_std, gt_std)).to(device)
 
     def forward(self, input):
 

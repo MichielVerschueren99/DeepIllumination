@@ -92,7 +92,7 @@ if __name__ == "__main__":
 
     print('=> Building model')
 
-    netG = G(opt.n_channel_input * 4, opt.n_channel_output, opt.n_generator_filters, means, stds)
+    netG = G(opt.n_channel_input * 4, opt.n_channel_output, opt.n_generator_filters, means, stds, device)
     netG.apply(weights_init)
     netD = D(opt.n_channel_input * 4, opt.n_channel_output, opt.n_discriminator_filters)
     netD.apply(weights_init)
