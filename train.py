@@ -29,7 +29,7 @@ if __name__ == "__main__":
     parser.add_argument('--windows_filepaths', type=bool, default=False, help='use windows filepaths')
     parser.add_argument('--save_val_images', type=bool, default=False,
                         help='save the resulting images of the validation set')
-    parser.add_argument('--train_batch_size', type=int, default=2, help='batch size for training')
+    parser.add_argument('--train_batch_size', type=int, default=1, help='batch size for training')
     parser.add_argument('--test_batch_size', type=int, default=1, help='batch size for testing')
     parser.add_argument('--n_epoch', type=int, default=200, help='number of iterations')
     parser.add_argument('--n_channel_input', type=int, default=3, help='number of input channels')
@@ -189,7 +189,7 @@ if __name__ == "__main__":
             output = netD(torch.cat((albedo, direct, normal, depth, fake_B),
                                     1))  # uitvoer voor elke patch van de discriminator voor dit gegenereerd sample
             label.data.resize_(output.size()).fill_(real_label)
-            err_l1_g = criterion_l1(fake_B, netG.normalize_gt(gt))
+            err_l1_g = criterion_l1(netG.unnormalize_gt(fake_B), gt)
             err_g = criterion(output, label) + opt.lamda \
                     * err_l1_g  # fout van generator voor dit voorbeeld
             err_g.backward()
@@ -254,7 +254,7 @@ if __name__ == "__main__":
             out_D = netD(torch.cat((albedo, direct, normal, depth, out_G), 1))
             with torch.no_grad():
                 label.resize_(out_D.size()).fill_(real_label)
-            err_l1_g = criterion_l1(out_G, netG.normalize_gt(gt))
+            err_l1_g = criterion_l1(netG.unnormalize_gt(out_G), gt)
             err_g = criterion(out_D, label) + opt.lamda * err_l1_g
 
             l1_running_loss += err_l1_g.item()
