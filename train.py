@@ -177,7 +177,7 @@ if __name__ == "__main__":
             err_d_real.backward()
             d_x_y = output.data.mean()  # gemiddelde uitvoer voor elke patch
             fake_B = netG(torch.cat((albedo, direct, normal, depth), 1))
-            output = netD(torch.cat((albedo, direct, normal, depth, fake_B.detach()), 1))
+            output = netD(torch.cat((albedo, direct, normal, depth, netG.unnormalize_gt(fake_B.detach())), 1))
             label.data.resize_(output.size()).fill_(fake_label)
             err_d_fake = criterion(output, label)  # = fout op fake voorbeeld
             err_d_fake.backward()
@@ -186,7 +186,7 @@ if __name__ == "__main__":
             optimizerD.step()
 
             netG.zero_grad()
-            output = netD(torch.cat((albedo, direct, normal, depth, fake_B),
+            output = netD(torch.cat((albedo, direct, normal, depth, netG.unnormalize_gt(fake_B)),
                                     1))  # uitvoer voor elke patch van de discriminator voor dit gegenereerd sample
             label.data.resize_(output.size()).fill_(real_label)
             err_l1_g = criterion_l1(fake_B, netG.normalize_gt(gt))
@@ -227,7 +227,7 @@ if __name__ == "__main__":
         net_d_model_out_path = "checkpoint" + slash + opt.dataset + slash + "netD_model_epoch_{}.pth".format(epoch)
         torch.save({'epoch': epoch + 1, 'state_dict_G': netG.state_dict(), 'optimizer_G': optimizerG.state_dict(), 'norm_mean_G': means, 'norm_std_G': stds},
                    net_g_model_out_path)
-        torch.save({'state_dict_D': netD.state_dict(), 'optimizer_D': optimizerD.state_dict()}, net_d_model_out_path)  # TODO (slaagt means en stds ni op maar maakt ni echt uit)
+        torch.save({'state_dict_D': netD.state_dict(), 'optimizer_D': optimizerD.state_dict()}, net_d_model_out_path) # TODO (slaagt means en stds ni op maar maakt ni echt uit)
         print("Checkpoint saved to {}".format("checkpoint" + opt.dataset))
 
 
@@ -251,7 +251,7 @@ if __name__ == "__main__":
                 gt.resize_(gt_cpu.size()).copy_(gt_cpu)
             out_G = netG(torch.cat((albedo, direct, normal, depth), 1))
 
-            out_D = netD(torch.cat((albedo, direct, normal, depth, out_G), 1))
+            out_D = netD(torch.cat((albedo, direct, normal, depth, netG.unnormalize_gt(out_G)), 1))
             with torch.no_grad():
                 label.resize_(out_D.size()).fill_(real_label)
             err_l1_g = criterion_l1(out_G, netG.normalize_gt(gt))
@@ -261,9 +261,8 @@ if __name__ == "__main__":
             full_running_loss += err_g.item()
 
             if opt.save_val_images:
-                out_G = out_G.cpu()
                 out_img_normalized = out_G.data[0]
-                out_img = netG.unnormalize_gt(out_img_normalized)
+                out_img = netG.unnormalize_gt(out_img_normalized).cpu()
                 save_image(out_img, "validation/{}/{}_Fake.exr".format(opt.dataset, index))
                 save_image(gt_cpu[0], "validation/{}/{}_Real.exr".format(opt.dataset, index))
                 save_image(direct_cpu[0], "validation/{}/{}_Direct.exr".format(opt.dataset, index))

@@ -86,9 +86,7 @@ class G(nn.Module):
         decoder8 = self.deconv8(self.relu(decoder7))
         output = self.tanh(decoder8)
 
-        unnormalized_output = self.unnormalize_gt(output)
-
-        return unnormalized_output
+        return output
 
     def normalize_buffers(self, input):
         return torch.div(torch.sub(input, self.norm_mean[:12]), self.norm_std[:12])
