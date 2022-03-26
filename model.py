@@ -59,8 +59,8 @@ class G(nn.Module):
 
     def forward(self, input):
 
-        normalized_input = self.normalize_buffers(input)
-        encoder1 = self.conv1(normalized_input)
+        #normalized_input = self.normalize_buffers(input)
+        encoder1 = self.conv1(input)
         encoder2 = self.batch_norm2(self.conv2(self.leaky_relu(encoder1)))
         encoder3 = self.batch_norm4(self.conv3(self.leaky_relu(encoder2)))
         encoder4 = self.batch_norm8(self.conv4(self.leaky_relu(encoder3)))
@@ -87,18 +87,6 @@ class G(nn.Module):
         output = self.tanh(decoder8)
 
         return output
-
-    def normalize_buffers(self, input):
-        return torch.div(torch.sub(input, self.norm_mean[:12]), self.norm_std[:12])
-
-    def normalize_gt(self, input):
-        return torch.div(torch.sub(input, self.norm_mean[-3:]), self.norm_std[-3:])
-
-    def unnormalize_buffers(self, input):
-        return torch.add(torch.mul(input, self.norm_std[:12]), self.norm_mean[:12])
-
-    def unnormalize_gt(self, input):
-        return torch.add(torch.mul(input, self.norm_std[-3:]), self.norm_mean[-3:])
 
 class D(nn.Module):
     def __init__(self, n_channel_input, n_channel_output, n_filters, norm_means, norm_stds, device):
@@ -132,8 +120,8 @@ class D(nn.Module):
         self.norm_std = torch.cat((albedo_std, direct_std, normal_std, depth_std, gt_std)).to(device)
 
     def forward(self, input):
-        normalized_input = self.normalize(input)
-        encoder1 = self.conv1(normalized_input)
+        #normalized_input = self.normalize(input)
+        encoder1 = self.conv1(input)
         encoder2 = self.batch_norm2(self.conv2(self.leaky_relu(encoder1)))
         encoder3 = self.batch_norm4(self.conv3(self.leaky_relu(encoder2)))
         encoder4 = self.batch_norm8(self.conv4(self.leaky_relu(encoder3)))
@@ -142,5 +130,3 @@ class D(nn.Module):
 
         return output
 
-    def normalize(self, input):
-        return torch.div(torch.sub(input, self.norm_mean), self.norm_std)

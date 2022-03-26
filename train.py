@@ -177,7 +177,7 @@ if __name__ == "__main__":
             err_d_real.backward()
             d_x_y = output.data.mean()  # gemiddelde uitvoer voor elke patch
             fake_B = netG(torch.cat((albedo, direct, normal, depth), 1))
-            output = netD(torch.cat((albedo, direct, normal, depth, netG.unnormalize_gt(fake_B.detach())), 1))
+            output = netD(torch.cat((albedo, direct, normal, depth, fake_B.detach()), 1))
             label.data.resize_(output.size()).fill_(fake_label)
             err_d_fake = criterion(output, label)  # = fout op fake voorbeeld
             err_d_fake.backward()
@@ -186,10 +186,10 @@ if __name__ == "__main__":
             optimizerD.step()
 
             netG.zero_grad()
-            output = netD(torch.cat((albedo, direct, normal, depth, netG.unnormalize_gt(fake_B)),
+            output = netD(torch.cat((albedo, direct, normal, depth, fake_B),
                                     1))  # uitvoer voor elke patch van de discriminator voor dit gegenereerd sample
             label.data.resize_(output.size()).fill_(real_label)
-            err_l1_g = criterion_l1(fake_B, netG.normalize_gt(gt))
+            err_l1_g = criterion_l1(fake_B, gt)
             err_g = criterion(output, label) + opt.lamda \
                     * err_l1_g  # fout van generator voor dit voorbeeld
             err_g.backward()
@@ -251,18 +251,17 @@ if __name__ == "__main__":
                 gt.resize_(gt_cpu.size()).copy_(gt_cpu)
             out_G = netG(torch.cat((albedo, direct, normal, depth), 1))
 
-            out_D = netD(torch.cat((albedo, direct, normal, depth, netG.unnormalize_gt(out_G)), 1))
+            out_D = netD(torch.cat((albedo, direct, normal, depth, out_G), 1))
             with torch.no_grad():
                 label.resize_(out_D.size()).fill_(real_label)
-            err_l1_g = criterion_l1(out_G, netG.normalize_gt(gt))
+            err_l1_g = criterion_l1(out_G, gt)
             err_g = criterion(out_D, label) + opt.lamda * err_l1_g
 
             l1_running_loss += err_l1_g.item()
             full_running_loss += err_g.item()
 
             if opt.save_val_images:
-                out_img_normalized = out_G.data[0]
-                out_img = netG.unnormalize_gt(out_img_normalized).cpu()
+                out_img = out_G.data[0].cpu()
                 save_image(out_img, "validation/{}/{}_Fake.exr".format(opt.dataset, index))
                 save_image(gt_cpu[0], "validation/{}/{}_Real.exr".format(opt.dataset, index))
                 save_image(direct_cpu[0], "validation/{}/{}_Direct.exr".format(opt.dataset, index))

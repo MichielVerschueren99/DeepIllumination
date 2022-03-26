@@ -36,14 +36,20 @@ def load_image(filename):
 
     img = np.transpose(img, (2, 0, 1))
     img = torch.from_numpy(img)
+    min = img.min() + 0.0
+    max = img.max() + 0.0
+    img = torch.FloatTensor(img.size()).copy_(img)
+    img.add_(-min).mul_(1.0 / (max - min))
+    img = img.mul_(2).add_(-1)
 
     return img
 
 
 def save_image(values, filename):
-
+    values = values.add_(1).div_(2)
     values = values.numpy()
     values = np.transpose(values, (1, 2, 0))
+
 
     channel_names = ['R', 'G', 'B']
 
