@@ -94,7 +94,7 @@ if __name__ == "__main__":
 
     netG = G(opt.n_channel_input * 4, opt.n_channel_output, opt.n_generator_filters, means, stds, device)
     netG.apply(weights_init)
-    netD = D(opt.n_channel_input * 4, opt.n_channel_output, opt.n_discriminator_filters)
+    netD = D(opt.n_channel_input * 4, opt.n_channel_output, opt.n_discriminator_filters, means, stds, device)
     netD.apply(weights_init)
 
     criterion = nn.BCELoss()
@@ -189,7 +189,7 @@ if __name__ == "__main__":
             output = netD(torch.cat((albedo, direct, normal, depth, fake_B),
                                     1))  # uitvoer voor elke patch van de discriminator voor dit gegenereerd sample
             label.data.resize_(output.size()).fill_(real_label)
-            err_l1_g = criterion_l1(netG.unnormalize_gt(fake_B), gt)
+            err_l1_g = criterion_l1(fake_B, netG.normalize_gt(gt))
             err_g = criterion(output, label) + opt.lamda \
                     * err_l1_g  # fout van generator voor dit voorbeeld
             err_g.backward()
@@ -227,7 +227,7 @@ if __name__ == "__main__":
         net_d_model_out_path = "checkpoint" + slash + opt.dataset + slash + "netD_model_epoch_{}.pth".format(epoch)
         torch.save({'epoch': epoch + 1, 'state_dict_G': netG.state_dict(), 'optimizer_G': optimizerG.state_dict(), 'norm_mean_G': means, 'norm_std_G': stds},
                    net_g_model_out_path)
-        torch.save({'state_dict_D': netD.state_dict(), 'optimizer_D': optimizerD.state_dict()}, net_d_model_out_path)
+        torch.save({'state_dict_D': netD.state_dict(), 'optimizer_D': optimizerD.state_dict()}, net_d_model_out_path)  # TODO (slaagt means en stds ni op maar maakt ni echt uit)
         print("Checkpoint saved to {}".format("checkpoint" + opt.dataset))
 
 
@@ -254,7 +254,7 @@ if __name__ == "__main__":
             out_D = netD(torch.cat((albedo, direct, normal, depth, out_G), 1))
             with torch.no_grad():
                 label.resize_(out_D.size()).fill_(real_label)
-            err_l1_g = criterion_l1(netG.unnormalize_gt(out_G), gt)
+            err_l1_g = criterion_l1(out_G, netG.normalize_gt(gt))
             err_g = criterion(out_D, label) + opt.lamda * err_l1_g
 
             l1_running_loss += err_l1_g.item()

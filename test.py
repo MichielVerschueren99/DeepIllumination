@@ -47,9 +47,8 @@ if __name__ == "__main__":
         netG = netG.to(device)
 
         out = netG(torch.cat((albedo, direct, normal, depth), 1))
-        out = out.cpu()
         out_img_normalized = out.data[0]
-        out_img = netG.unnormalize_gt(out_img_normalized)
+        out_img = netG.unnormalize_gt(out_img_normalized).cpu()
 
         if not os.path.exists("result"):
             os.mkdir("result")
