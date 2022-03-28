@@ -84,7 +84,9 @@ class G(nn.Module):
         decoder7 = self.batch_norm(self.deconv7(self.relu(decoder6)))
         decoder7 = torch.cat((decoder7, encoder1), 1)
         decoder8 = self.deconv8(self.relu(decoder7))
-        output = self.tanh(decoder8)
+        #output = self.tanh(decoder8)
+
+        output = decoder8
 
         return output
 

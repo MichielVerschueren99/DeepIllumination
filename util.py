@@ -10,7 +10,7 @@ import sys
 import OpenEXR as exr
 import Imath
 
-def load_image(filename):
+def load_image(filename):  # alpha wordt genegeerd
 
     image_file = exr.InputFile(filename)
     header = image_file.header()
@@ -28,10 +28,9 @@ def load_image(filename):
 
         channelData[c] = C
 
-    colorChannels = ['R', 'G', 'B', 'A'] if 'A' in header['channels'] else ['R', 'G', 'B']
+    colorChannels = ['R', 'G', 'B']
     img = np.concatenate([channelData[c][..., np.newaxis] for c in colorChannels], axis=2)
 
-    assert 'A' not in header['channels']
     assert 'Z' not in header['channels']
 
     img = np.transpose(img, (2, 0, 1))

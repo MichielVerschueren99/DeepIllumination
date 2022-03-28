@@ -48,7 +48,12 @@ if __name__ == "__main__":
 
         out = netG(torch.cat((albedo, direct, normal, depth), 1))
         out_img_normalized = out.data[0]
-        out_img = netG.unnormalize_gt(out_img_normalized).cpu()
+        out_img = netG.unnormalize_gt(out_img_normalized)
+
+        if opt.add_direct_illumination:
+            out_img = torch.add(out_img, direct.data[0])
+
+        out_img = out_img.cpu()
 
         if not os.path.exists("result"):
             os.mkdir("result")

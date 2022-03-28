@@ -24,7 +24,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='DeepRendering-implemention')
     parser.add_argument('--dataset', required=True, help='output from unity')
     parser.add_argument('--dataset_directory', type=str, default="", help='give a custom dataset directory')
-    parser.add_argument('--keep_every_checkpoint', type=bool, default=False,
+    parser.add_argument('--keep_every_checkpoint', type=bool, default=True,
                         help='keep the checkpoint that is generated after every epoch')
     parser.add_argument('--windows_filepaths', type=bool, default=False, help='use windows filepaths')
     parser.add_argument('--save_val_images', type=bool, default=False,
