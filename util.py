@@ -2,11 +2,9 @@ import os
 import random
 
 import numpy as np
-# from scipy.misc import imread, imresize, imsave
-import imageio
+from operator import add
 import torch
 import re
-import sys
 import OpenEXR as exr
 import Imath
 
@@ -107,20 +105,17 @@ def read_pfm(file):
 
 def get_mean_and_std(dataloader):
     num_batches = 0
-    sums = [0, 0, 0, 0, 0]
-    squared_sums = [0, 0, 0, 0, 0]
+    sums = []
+    squared_sums = []
     for (i, images) in enumerate(dataloader):
-        (albedo_cpu, direct_cpu, normal_cpu, depth_cpu, gt_cpu) = (images[0], images[1], images[2], images[3], images[4])
-        sums[0] += torch.mean(albedo_cpu)
-        sums[1] += torch.mean(direct_cpu)
-        sums[2] += torch.mean(normal_cpu)
-        sums[3] += torch.mean(depth_cpu)
-        sums[4] += torch.mean(gt_cpu)
-        squared_sums[0] += torch.mean(albedo_cpu ** 2)
-        squared_sums[1] += torch.mean(direct_cpu ** 2)
-        squared_sums[2] += torch.mean(normal_cpu ** 2)
-        squared_sums[3] += torch.mean(depth_cpu ** 2)
-        squared_sums[4] += torch.mean(gt_cpu ** 2)
+        if len(sums) == 0:
+            sums = [0] * len(images)
+        if len(squared_sums) == 0:
+            squared_sums = [0] * len(images)
+
+        for j in range(0, len(images)):
+            sums[j] += torch.mean(images[j])
+            squared_sums[j] += torch.mean(images[j] ** 2)
         num_batches += 1
 
     means = [x / num_batches for x in sums]

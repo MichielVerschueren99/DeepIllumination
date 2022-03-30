@@ -19,6 +19,9 @@ from model import G, D, weights_init
 from util import load_image, save_image
 from torch.utils.tensorboard import SummaryWriter
 
+buffer_names = ['albedo', 'direct', 'normal', 'depth']
+gt_name = 'gt'
+
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description='DeepRendering-implemention')
@@ -77,8 +80,8 @@ if __name__ == "__main__":
     train_dir = join(root_dir + opt.dataset, "train")
     test_dir = join(root_dir + opt.dataset, "val")
 
-    train_set = DataLoaderHelper(train_dir)
-    val_set = DataLoaderHelper(test_dir)
+    train_set = DataLoaderHelper(train_dir, buffer_names, gt_name)
+    val_set = DataLoaderHelper(test_dir, buffer_names, gt_name)
 
     batch_size = opt.train_batch_size
     n_epoch = opt.n_epoch
@@ -92,18 +95,17 @@ if __name__ == "__main__":
 
     print('=> Building model')
 
-    netG = G(opt.n_channel_input * 4, opt.n_channel_output, opt.n_generator_filters, means, stds, device)
+    netG = G(opt.n_channel_input * len(buffer_names), opt.n_channel_output, opt.n_generator_filters, means, stds, device)
     netG.apply(weights_init)
-    netD = D(opt.n_channel_input * 4, opt.n_channel_output, opt.n_discriminator_filters, means, stds, device)
+    netD = D(opt.n_channel_input * len(buffer_names), opt.n_channel_output, opt.n_discriminator_filters, means, stds, device)
     netD.apply(weights_init)
 
     criterion = nn.BCELoss()
     criterion_l1 = nn.L1Loss()
 
-    albedo = torch.FloatTensor(opt.train_batch_size, opt.n_channel_input, 256, 256)
-    direct = torch.FloatTensor(opt.train_batch_size, opt.n_channel_input, 256, 256)
-    normal = torch.FloatTensor(opt.train_batch_size, opt.n_channel_input, 256, 256)
-    depth = torch.FloatTensor(opt.train_batch_size, opt.n_channel_input, 256, 256)
+    buffers = []
+    for i in range(0, len(buffer_names)):
+        buffers.append(torch.FloatTensor(opt.train_batch_size, opt.n_channel_input, 256, 256))
 
     gt = torch.FloatTensor(opt.train_batch_size, opt.n_channel_output, 256, 256)
 
@@ -116,17 +118,12 @@ if __name__ == "__main__":
     criterion = criterion.to(device)
     criterion_l1 = criterion_l1.to(device)
 
-    albedo = albedo.to(device)
-    direct = direct.to(device)
-    normal = normal.to(device)
-    depth = depth.to(device)
+    for buffer in buffers:
+        buffer.to(device)
     gt = gt.to(device)
     label = label.to(device)
 
-    albedo = Variable(albedo)
-    direct = Variable(direct)
-    normal = Variable(normal)
-    depth = Variable(depth)
+    buffers = [Variable(buffer) for buffer in buffers]
     gt = Variable(gt)
     label = Variable(label)
 
@@ -161,23 +158,18 @@ if __name__ == "__main__":
         l1_running_loss = 0.0
         for (i, images) in enumerate(train_data):
             netD.zero_grad()
-            (albedo_cpu, direct_cpu, normal_cpu, depth_cpu, gt_cpu) = (
-            images[0], images[1], images[2], images[3], images[4])
-
             with torch.no_grad():
-                albedo.resize_(albedo_cpu.size()).copy_(albedo_cpu)
-                direct.resize_(direct_cpu.size()).copy_(direct_cpu)
-                normal.resize_(normal_cpu.size()).copy_(normal_cpu)
-                depth.resize_(depth_cpu.size()).copy_(depth_cpu)
-                gt.resize_(gt_cpu.size()).copy_(gt_cpu)
-            output = netD(torch.cat((albedo, direct, normal, depth, gt), 1))
+                for j in range(0, len(buffers)):
+                    buffers[j].resize_(images[j].size()).copy_(images[j])
+                gt.resize_(images[-1].size()).copy_(images[-1])
+            output = netD(torch.cat(buffers + [gt], 1))
             with torch.no_grad():
                 label.resize_(output.size()).fill_(real_label)
             err_d_real = criterion(output, label)  # = fout op echt voorbeeld
             err_d_real.backward()
             d_x_y = output.data.mean()  # gemiddelde uitvoer voor elke patch
-            fake_B = netG(torch.cat((albedo, direct, normal, depth), 1))
-            output = netD(torch.cat((albedo, direct, normal, depth, netG.unnormalize_gt(fake_B.detach())), 1))
+            fake_B = netG(torch.cat(buffers, 1))
+            output = netD(torch.cat(buffers + [netG.unnormalize_gt(fake_B.detach())], 1))
             label.data.resize_(output.size()).fill_(fake_label)
             err_d_fake = criterion(output, label)  # = fout op fake voorbeeld
             err_d_fake.backward()
@@ -186,8 +178,7 @@ if __name__ == "__main__":
             optimizerD.step()
 
             netG.zero_grad()
-            output = netD(torch.cat((albedo, direct, normal, depth, netG.unnormalize_gt(fake_B)),
-                                    1))  # uitvoer voor elke patch van de discriminator voor dit gegenereerd sample
+            output = netD(torch.cat(buffers + [netG.unnormalize_gt(fake_B)], 1))  # uitvoer voor elke patch van de discriminator voor dit gegenereerd sample
             label.data.resize_(output.size()).fill_(real_label)
             err_l1_g = criterion_l1(fake_B, netG.normalize_gt(gt))
             err_g = criterion(output, label) + opt.lamda \
@@ -244,14 +235,12 @@ if __name__ == "__main__":
             (albedo_cpu, direct_cpu, normal_cpu, depth_cpu, gt_cpu) = (
             images[0], images[1], images[2], images[3], images[4])
             with torch.no_grad():
-                albedo.resize_(albedo_cpu.size()).copy_(albedo_cpu)
-                direct.resize_(direct_cpu.size()).copy_(direct_cpu)
-                normal.resize_(normal_cpu.size()).copy_(normal_cpu)
-                depth.resize_(depth_cpu.size()).copy_(depth_cpu)
-                gt.resize_(gt_cpu.size()).copy_(gt_cpu)
-            out_G = netG(torch.cat((albedo, direct, normal, depth), 1))
+                for j in range(0, len(buffers)):
+                    buffers[j].resize_(images[j].size()).copy_(images[j])
+                gt.resize_(images[-1].size()).copy_(images[-1])
+            out_G = netG(torch.cat(buffers, 1))
 
-            out_D = netD(torch.cat((albedo, direct, normal, depth, netG.unnormalize_gt(out_G)), 1))
+            out_D = netD(torch.cat(buffers + [netG.unnormalize_gt(out_G)], 1))
             with torch.no_grad():
                 label.resize_(out_D.size()).fill_(real_label)
             err_l1_g = criterion_l1(out_G, netG.normalize_gt(gt))
