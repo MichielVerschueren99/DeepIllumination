@@ -264,9 +264,10 @@ if __name__ == "__main__":
             # als het netwerk naar indirect optimaliseerd is gt alleen indirect
             if not gt_name == 'gt':
                 direct_lighting = load_image(join(test_dir, "direct", val_set.image_filenames[index]))
+                direct_lighting = direct_lighting[None, :].to(device)
                 torch.add(nn_result, direct_lighting)
                 full_gi_gt = load_image(join(test_dir, "gt", val_set.image_filenames[index]))
-                full_gi_gt = full_gi_gt[None, :]
+                full_gi_gt = full_gi_gt[None, :].to(device)
                 mean_MSE_clamped += MSE(nn_result, full_gi_gt).item()
                 max = torch.max(torch.cat((nn_result, full_gi_gt), 1)).item()
                 mean_SSIM_clamped += piqa.ssim.ssim(nn_result, full_gi_gt, kernel, value_range=max)[0].item()
