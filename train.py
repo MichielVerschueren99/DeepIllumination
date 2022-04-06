@@ -22,7 +22,6 @@ from util import load_image, save_image
 from torch.utils.tensorboard import SummaryWriter
 
 buffer_names = ['albedo', 'direct', 'normal', 'depth']
-gt_name = 'indirect'
 
 if __name__ == "__main__":
 
@@ -34,6 +33,7 @@ if __name__ == "__main__":
     parser.add_argument('--windows_filepaths', type=bool, default=False, help='use windows filepaths')
     parser.add_argument('--save_val_images', type=bool, default=False,
                         help='save the resulting images of the validation set')
+    parser.add_argument('--gt_name', type=str, default="gt", help='name of gt folder')
     parser.add_argument('--train_batch_size', type=int, default=1, help='batch size for training') #TODO check of MSE en SSIM werken bij batch > 1
     parser.add_argument('--test_batch_size', type=int, default=1, help='batch size for testing')
     parser.add_argument('--n_epoch', type=int, default=200, help='number of iterations')
@@ -65,6 +65,8 @@ if __name__ == "__main__":
     print('=> Loading datasets')
 
     # root directory voor google collab: "/content/drive/MyDrive/Thesis/DeepIllumination/dataset/"
+
+    gt_name = opt.gt_name
 
     if opt.windows_filepaths:
         slash = "\\"
