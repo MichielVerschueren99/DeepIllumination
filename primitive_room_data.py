@@ -4,9 +4,9 @@ import subprocess
 from termcolor import cprint
 import util as u
 
-train_amount = 2000
-val_amount = 500
-test_amount = 30
+train_amount = 100
+val_amount = 1
+test_amount = 1
 
 write_location = "/home/r0705259/Thesis/trainingdata/"
 
@@ -16,6 +16,7 @@ def primitive_room():
     cylinder_template = """AttributeBegin
 		Material "matte" "rgb Kd" [{} {} {}]
 		Translate {} 0 {}
+		Rotate {} 0 1 0
 		Rotate -90 1 0 0
 		Shape "cylinder" "float radius" 0.1 "float zmin" 0 "float zmax" 0.2
 	AttributeEnd"""
@@ -24,40 +25,36 @@ def primitive_room():
     sphere_template = """AttributeBegin
 		Material "matte" "rgb Kd" [{} {} {}]
 		Translate {} 0.1 {}
+		Rotate {} 0 1 0
 		Shape "sphere" "float radius" 0.1
 	AttributeEnd"""
 
-    # CUBE
-    cube_template = """AttributeBegin
+    # DODECAHEDRON
+    dodecahedron_template = """AttributeBegin
 		Material "matte" "rgb Kd" [{} {} {}]
 		Translate {} 0 {}
-		Scale 0.1 0.2 0.1
-		Shape "plymesh" "string filename" "\\meshes\\cube.ply"
-	AttributeEnd"""
+		Scale 0.1 0.1 0.1
+		Rotate {} 0 1 0
+		Shape "plymesh" "string filename" "C:\\\\Users\\\\Michi\\\\PycharmProjects\\\\DeepIllumination\\\\meshes\\\\dodecahedron.ply"
+	AttributeEnd""" # "/home/r0705259/Thesis/meshes/dodecahedron.ply"
 
     # BUNNY
     bunny_template = """AttributeBegin
 		Material "matte" "rgb Kd" [{} {} {}]
 		Translate {} 0 {}
-		Scale 0.2 0.2 0.2
-		Shape "plymesh" "string filename" "\\meshes\\\\bunny.ply"
-	AttributeEnd"""
+		Scale 0.15 0.15 0.15
+		Rotate {} 0 1 0
+		Shape "plymesh" "string filename" "C:\\\\Users\\\\Michi\\\\PycharmProjects\\\\DeepIllumination\\\\meshes\\\\bunny.ply"
+	AttributeEnd""" # "/home/r0705259/Thesis/meshes/bunny.ply"
 
-    # ICOSAHEDRON
-    icos_template = """AttributeBegin
+    # TEAPOT
+    teapot_template = """AttributeBegin
 		Material "matte" "rgb Kd" [{} {} {}]
 		Translate {} 0 {}
-		Scale 0.2 0.2 0.2
-		Shape "plymesh" "string filename" "\\meshes\\\\icosahedron.ply"
-	AttributeEnd"""
-
-    # DRAGON
-    dragon_template = """AttributeBegin
-		Material "matte" "rgb Kd" [{} {} {}]
-		Translate {} 0 {}
-		Scale 0.3 0.3 0.3
-		Shape "plymesh" "string filename" "\\meshes\\dragon.ply"
-	AttributeEnd"""
+		Scale 0.17 0.17 0.17
+		Rotate {} 0 1 0
+		Shape "plymesh" "string filename" "C:\\\\Users\\\\Michi\\\\PycharmProjects\\\\DeepIllumination\\\\meshes\\\\teapot.ply"
+	AttributeEnd""" # "/home/r0705259/Thesis/meshes/teapot.ply"
 
     counter = 0
     per_dataset_counter = 0
@@ -76,20 +73,25 @@ def primitive_room():
         front_wall_rgb = u.generate_random_list(0, 1, 3)
         world = u.emptyPrimitiveRoom(back_wall_rgb, right_wall_rgb, front_wall_rgb, left_wall_rgb)
 
-        object_locations = u.generate_random_xz_locations(-0.9, 0.9, 0.2, 12)
+        object_locations = u.generate_random_xz_locations(-0.9, 0.9, 0.2, 15)
 
-        world = add_object(cylinder_template, object_locations[0], world)
-        world = add_object(cylinder_template, object_locations[1], world)
-        world = add_object(cylinder_template, object_locations[2], world)
-        world = add_object(cylinder_template, object_locations[3], world)
-        world = add_object(cylinder_template, object_locations[4], world)
-        world = add_object(cylinder_template, object_locations[5], world)
-        world = add_object(sphere_template, object_locations[6], world)
-        world = add_object(sphere_template, object_locations[7], world)
-        world = add_object(sphere_template, object_locations[8], world)
-        world = add_object(sphere_template, object_locations[9], world)
-        world = add_object(sphere_template, object_locations[10], world)
-        world = add_object(sphere_template, object_locations[11], world)
+        object_rotations = u.generate_random_list(0, 360, 15)
+
+        world = add_object(cylinder_template, object_locations[0], object_rotations[0], world)
+        world = add_object(cylinder_template, object_locations[1], object_rotations[1], world)
+        world = add_object(cylinder_template, object_locations[12], object_rotations[12], world)
+        world = add_object(sphere_template, object_locations[2], object_rotations[2], world)
+        world = add_object(sphere_template, object_locations[3], object_rotations[3], world)
+        world = add_object(sphere_template, object_locations[13], object_rotations[13], world)
+        world = add_object(dodecahedron_template, object_locations[4], object_rotations[4], world)
+        world = add_object(dodecahedron_template, object_locations[5], object_rotations[5], world)
+        world = add_object(dodecahedron_template, object_locations[14], object_rotations[14], world)
+        world = add_object(bunny_template, object_locations[6], object_rotations[6], world)
+        world = add_object(bunny_template, object_locations[7], object_rotations[7], world)
+        world = add_object(bunny_template, object_locations[8], object_rotations[8], world)
+        world = add_object(teapot_template, object_locations[9], object_rotations[9], world)
+        world = add_object(teapot_template, object_locations[10], object_rotations[10], world)
+        world = add_object(teapot_template, object_locations[11], object_rotations[11], world)
 
         world = world + '\n' + u.cornellBoxLight()
 
@@ -105,9 +107,9 @@ def primitive_room():
 
 
 
-def add_object(object_template, location, world):
+def add_object(object_template, location, rotation, world):
     rgb = u.generate_random_list(0, 1, 3)
-    world = world + '\n' + object_template.format(rgb[0], rgb[1], rgb[2], location[0], location[1])
+    world = world + '\n' + object_template.format(rgb[0], rgb[1], rgb[2], location[0], location[1], rotation)
     return world
 
 def generate_data(dataset, camera, world, name):
@@ -126,16 +128,16 @@ def generate_data(dataset, camera, world, name):
                                            u.imageFilm(direct_name + ".exr"), camera, world)
     depth_scene_file_content = u.makePBRT(u.depthIntegrator(), u.stratifiedSampler(), u.triangleFilter(),
                                           u.imageFilm(depth_name + ".exr"), camera, world)
-    gt_scene_file_content = u.makePBRT(u.pathTracingIntegrator(), u.stratifiedSampler(23, 23), u.triangleFilter(),
+    gt_scene_file_content = u.makePBRT(u.pathTracingIntegrator(), u.stratifiedSampler(32, 32), u.triangleFilter(),
                                        u.imageFilm(gt_name + ".exr"), camera, world)
-    indirect_scene_file_content = u.makePBRT(u.indirectIlluminationIntegrator(), u.stratifiedSampler(23, 23), u.triangleFilter(),
+    indirect_scene_file_content = u.makePBRT(u.indirectIlluminationIntegrator(), u.stratifiedSampler(32, 32), u.triangleFilter(),
                                        u.imageFilm(indirect_name + ".exr"), camera, world)
-    save_scene_file(albedo_scene_file_content, "scenefiles\\primitive_room\\" + albedo_name + ".pbrt")
-    save_scene_file(normal_scene_file_content, "scenefiles\\primitive_room\\" + normal_name + ".pbrt")
-    save_scene_file(direct_scene_file_content, "scenefiles\\primitive_room\\" + direct_name + ".pbrt")
-    save_scene_file(depth_scene_file_content, "scenefiles\\primitive_room\\" + depth_name + ".pbrt")
-    save_scene_file(gt_scene_file_content, "scenefiles\\primitive_room\\" + gt_name + ".pbrt")
-    save_scene_file(indirect_scene_file_content, "scenefiles\\primitive_room\\" + indirect_name + ".pbrt")
+    save_scene_file(albedo_scene_file_content, "scenefiles\\primitive_room_f1_test\\" + albedo_name + ".pbrt")
+    save_scene_file(normal_scene_file_content, "scenefiles\\primitive_room_f1_test\\" + normal_name + ".pbrt")
+    save_scene_file(direct_scene_file_content, "scenefiles\\primitive_room_f1_test\\" + direct_name + ".pbrt")
+    save_scene_file(depth_scene_file_content, "scenefiles\\primitive_room_f1_test\\" + depth_name + ".pbrt")
+    save_scene_file(gt_scene_file_content, "scenefiles\\primitive_room_f1_test\\" + gt_name + ".pbrt")
+    save_scene_file(indirect_scene_file_content, "scenefiles\\primitive_room_f1_test\\" + indirect_name + ".pbrt")
 
 
 def save_scene_file(scene_file_content, path):

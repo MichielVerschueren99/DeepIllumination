@@ -231,9 +231,10 @@ if __name__ == "__main__":
 
         l1_running_loss = 0.0
         full_running_loss = 0.0
+        mean_MSE_clamped = 0.0
+        mean_SSIM_clamped = 0.0
+        MSE = nn.MSELoss()
         for index, images in enumerate(val_data):
-            (albedo_cpu, direct_cpu, normal_cpu, depth_cpu, gt_cpu) = (
-            images[0], images[1], images[2], images[3], images[4])
             with torch.no_grad():
                 for j in range(0, len(buffers)):
                     buffers[j].resize_(images[j].size()).copy_(images[j])
@@ -248,6 +249,18 @@ if __name__ == "__main__":
 
             l1_running_loss += err_l1_g.item()
             full_running_loss += err_g.item()
+
+            out_G[out_G < 0] = 0
+
+            # als het netwerk naar indirect optimaliseerd is gt alleen indirect
+            if not gt_name == 'gt':
+                full_gi_gt = load_image(join(test_dir, "gt", val_set.image_filenames[index]))
+                direct_lighting = load_image(join(test_dir, "direct", val_set.image_filenames[index]))
+                mean_MSE_clamped += MSE(torch.add(out_G, direct_lighting), full_gi_gt)
+
+            else:
+                full_gi_gt = gt
+
 
             if opt.save_val_images:
                 out_img_normalized = out_G.data[0]
