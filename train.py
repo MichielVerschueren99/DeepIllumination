@@ -122,8 +122,8 @@ if __name__ == "__main__":
     criterion = criterion.to(device)
     criterion_l1 = criterion_l1.to(device)
 
-    for buffer in buffers:
-        buffer.to(device)
+    for i in range(0, len(buffers)):
+        buffers[i] = buffers[i].to(device)
     gt = gt.to(device)
     label = label.to(device)
 
@@ -238,7 +238,7 @@ if __name__ == "__main__":
         mean_MSE_clamped = 0.0
         mean_SSIM_clamped = 0.0
         MSE = nn.MSELoss()
-        kernel = gaussian_kernel(11, sigma=1.5).repeat(3, 1, 1)
+        kernel = gaussian_kernel(11, sigma=1.5).repeat(3, 1, 1).to(device)
         for index, images in enumerate(val_data):
             with torch.no_grad():
                 for j in range(0, len(buffers)):
