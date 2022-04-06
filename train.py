@@ -135,7 +135,7 @@ if __name__ == "__main__":
     optimizerG = optim.Adam(netG.parameters(), lr=opt.lr, betas=(opt.beta1, 0.999))
     lastEpoch = 0
 
-    if opt.resume_G:  # (bij het resumen worden de nieuwe means en stds gebruikt, deze worden niet heringeladen)
+    if opt.resume_G:  # (bij het resumen worden de nieuwe means en stds gebruikt, deze worden niet heringeladen) #TODO resumen werkt miss ni meer nu mappen zijn aangepast
         if os.path.isfile(opt.resume_G):
             print("=> loading generator checkpoint '{}'".format(opt.resume_G))
             checkpoint = torch.load(opt.resume_G)
@@ -218,8 +218,10 @@ if __name__ == "__main__":
             os.mkdir("checkpoint")
         if not os.path.exists(os.path.join("checkpoint", opt.dataset)):
             os.mkdir(os.path.join("checkpoint", opt.dataset))
-        net_g_model_out_path = "checkpoint" + slash + opt.dataset + slash + "netG_model_epoch_{}.pth".format(epoch)
-        net_d_model_out_path = "checkpoint" + slash + opt.dataset + slash + "netD_model_epoch_{}.pth".format(epoch)
+        if not os.path.exists(os.path.join("checkpoint", opt.dataset, now)):
+            os.mkdir(os.path.join("checkpoint", opt.dataset, now))
+        net_g_model_out_path = "checkpoint" + slash + opt.dataset + slash + now + slash + "netG_model_epoch_{}.pth".format(epoch)
+        net_d_model_out_path = "checkpoint" + slash + opt.dataset + slash + now + slash + "netD_model_epoch_{}.pth".format(epoch)
         torch.save({'epoch': epoch + 1, 'state_dict_G': netG.state_dict(), 'optimizer_G': optimizerG.state_dict(), 'norm_mean_G': means, 'norm_std_G': stds},
                    net_g_model_out_path)
         torch.save({'state_dict_D': netD.state_dict(), 'optimizer_D': optimizerD.state_dict()}, net_d_model_out_path) # TODO (slaagt means en stds ni op maar maakt ni echt uit)
@@ -255,28 +257,37 @@ if __name__ == "__main__":
             l1_running_loss += err_l1_g.item()
             full_running_loss += err_g.item()
 
-            out_G[out_G < 0] = 0
+            nn_result = netG.unnormalize_gt(out_G)
+
+            nn_result[nn_result < 0] = 0
 
             # als het netwerk naar indirect optimaliseerd is gt alleen indirect
             if not gt_name == 'gt':
                 direct_lighting = load_image(join(test_dir, "direct", val_set.image_filenames[index]))
-                torch.add(out_G, direct_lighting)
+                torch.add(nn_result, direct_lighting)
                 full_gi_gt = load_image(join(test_dir, "gt", val_set.image_filenames[index]))
                 full_gi_gt = full_gi_gt[None, :]
-                mean_MSE_clamped += MSE(out_G, full_gi_gt).item()
-                max = torch.max(torch.cat((out_G, full_gi_gt), 1)).item()
-                mean_SSIM_clamped += piqa.ssim.ssim(out_G, full_gi_gt, kernel, value_range=max)[0].item()
+                mean_MSE_clamped += MSE(nn_result, full_gi_gt).item()
+                max = torch.max(torch.cat((nn_result, full_gi_gt), 1)).item()
+                mean_SSIM_clamped += piqa.ssim.ssim(nn_result, full_gi_gt, kernel, value_range=max)[0].item()
             else:
-                mean_MSE_clamped += MSE(out_G, gt).item()
-                max = torch.max(torch.cat((out_G, gt), 1)).item()
-                mean_SSIM_clamped += piqa.ssim.ssim(out_G, gt, kernel, value_range=max)[0].item() #TODO max?
+                mean_MSE_clamped += MSE(nn_result, gt).item()
+                max = torch.max(torch.cat((nn_result, gt), 1)).item()
+                mean_SSIM_clamped += piqa.ssim.ssim(nn_result, gt, kernel, value_range=max)[0].item() #TODO max?
 
             if opt.save_val_images:
-                out_img_normalized = out_G.data[0]
+                if not os.path.exists("validation"):
+                    os.mkdir("validation")
+                if not os.path.exists(os.path.join("validation", opt.dataset)):
+                    os.mkdir(os.path.join("validation", opt.dataset))
+                if not os.path.exists(os.path.join("validation", opt.dataset, now)):
+                    os.mkdir(os.path.join("validation", opt.dataset, now))
+                out_img_normalized = nn_result.data[0]
                 out_img = netG.unnormalize_gt(out_img_normalized).cpu()
-                save_image(out_img, "validation/{}/{}_Fake.exr".format(opt.dataset, index))
-                #save_image(gt_cpu[0], "validation/{}/{}_Real.exr".format(opt.dataset, index)) #TODO
-                #save_image(direct_cpu[0], "validation/{}/{}_Direct.exr".format(opt.dataset, index))
+                all_names = buffer_names + [gt_name]
+                save_image(out_img, "validation/{}/{}_Fake.exr".format(opt.dataset + '/' + now, index))
+                save_image(images[all_names.index(gt_name)][0], "validation/{}/{}_Real.exr".format(opt.dataset + '/' + now, index))
+                save_image(images[all_names.index("direct")][0], "validation/{}/{}_Direct.exr".format(opt.dataset + '/' + now, index))
             # validation loss wordt niet berekend/gebruikt, alleen voor visuele confirmatie
 
         # log loss naar tensorboard (volledige loss/enkel l1 loss)
