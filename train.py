@@ -7,8 +7,10 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 import torch.backends.cudnn as cudnn
-import torchvision
+import piqa
 from datetime import datetime
+
+from piqa.utils.functional import gaussian_kernel
 
 import util
 from data import DataLoaderHelper
@@ -20,7 +22,7 @@ from util import load_image, save_image
 from torch.utils.tensorboard import SummaryWriter
 
 buffer_names = ['albedo', 'direct', 'normal', 'depth']
-gt_name = 'gt'
+gt_name = 'indirect'
 
 if __name__ == "__main__":
 
@@ -32,7 +34,7 @@ if __name__ == "__main__":
     parser.add_argument('--windows_filepaths', type=bool, default=False, help='use windows filepaths')
     parser.add_argument('--save_val_images', type=bool, default=False,
                         help='save the resulting images of the validation set')
-    parser.add_argument('--train_batch_size', type=int, default=1, help='batch size for training')
+    parser.add_argument('--train_batch_size', type=int, default=1, help='batch size for training') #TODO check of MSE en SSIM werken bij batch > 1
     parser.add_argument('--test_batch_size', type=int, default=1, help='batch size for testing')
     parser.add_argument('--n_epoch', type=int, default=200, help='number of iterations')
     parser.add_argument('--n_channel_input', type=int, default=3, help='number of input channels')
@@ -234,6 +236,7 @@ if __name__ == "__main__":
         mean_MSE_clamped = 0.0
         mean_SSIM_clamped = 0.0
         MSE = nn.MSELoss()
+        kernel = gaussian_kernel(11, sigma=1.5).repeat(3, 1, 1)
         for index, images in enumerate(val_data):
             with torch.no_grad():
                 for j in range(0, len(buffers)):
@@ -254,25 +257,31 @@ if __name__ == "__main__":
 
             # als het netwerk naar indirect optimaliseerd is gt alleen indirect
             if not gt_name == 'gt':
-                full_gi_gt = load_image(join(test_dir, "gt", val_set.image_filenames[index]))
                 direct_lighting = load_image(join(test_dir, "direct", val_set.image_filenames[index]))
-                mean_MSE_clamped += MSE(torch.add(out_G, direct_lighting), full_gi_gt)
-
+                torch.add(out_G, direct_lighting)
+                full_gi_gt = load_image(join(test_dir, "gt", val_set.image_filenames[index]))
+                full_gi_gt = full_gi_gt[None, :]
+                mean_MSE_clamped += MSE(out_G, full_gi_gt).item()
+                max = torch.max(torch.cat((out_G, full_gi_gt), 1)).item()
+                mean_SSIM_clamped += piqa.ssim.ssim(out_G, full_gi_gt, kernel, value_range=max)[0].item()
             else:
-                full_gi_gt = gt
-
+                mean_MSE_clamped += MSE(out_G, gt).item()
+                max = torch.max(torch.cat((out_G, gt), 1)).item()
+                mean_SSIM_clamped += piqa.ssim.ssim(out_G, gt, kernel, value_range=max)[0].item() #TODO max?
 
             if opt.save_val_images:
                 out_img_normalized = out_G.data[0]
                 out_img = netG.unnormalize_gt(out_img_normalized).cpu()
                 save_image(out_img, "validation/{}/{}_Fake.exr".format(opt.dataset, index))
-                save_image(gt_cpu[0], "validation/{}/{}_Real.exr".format(opt.dataset, index))
-                save_image(direct_cpu[0], "validation/{}/{}_Direct.exr".format(opt.dataset, index))
+                #save_image(gt_cpu[0], "validation/{}/{}_Real.exr".format(opt.dataset, index)) #TODO
+                #save_image(direct_cpu[0], "validation/{}/{}_Direct.exr".format(opt.dataset, index))
             # validation loss wordt niet berekend/gebruikt, alleen voor visuele confirmatie
 
         # log loss naar tensorboard (volledige loss/enkel l1 loss)
         writer.add_scalar('generator_full_loss/validation', full_running_loss / len(val_data), epoch)
         writer.add_scalar('generator_l1_loss/validation', l1_running_loss / len(val_data), epoch)
+        writer.add_scalar('output_MSE/validation', mean_MSE_clamped / len(val_data), epoch)
+        writer.add_scalar('output_SSIM/validation', mean_SSIM_clamped / len(val_data), epoch)
 
 
     for epoch in range(n_epoch):

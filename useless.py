@@ -15,6 +15,8 @@ y = torch.Tensor([[2, 5]])
 lijst = [z, y]
 x = torch.Tensor([[3, 8]])
 
+k = torch.max(x).item()
+
 bb = torch.cat(lijst + [x], 1)
 
 print("test")
