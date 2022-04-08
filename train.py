@@ -265,7 +265,7 @@ if __name__ == "__main__":
             if not gt_name == 'gt':
                 direct_lighting = load_image(join(test_dir, "direct", val_set.image_filenames[index]))
                 direct_lighting = direct_lighting[None, :].to(device)
-                torch.add(nn_result, direct_lighting)
+                nn_result = torch.add(nn_result, direct_lighting)
                 full_gi_gt = load_image(join(test_dir, "gt", val_set.image_filenames[index]))
                 full_gi_gt = full_gi_gt[None, :].to(device)
                 mean_MSE_clamped += MSE(nn_result, full_gi_gt).item()
