@@ -43,19 +43,15 @@ class G(nn.Module):
 
         self.tanh = nn.Tanh()
 
-        albedo_mean = torch.full((3, 256, 256), norm_means[0])
-        direct_mean = torch.full((3, 256, 256), norm_means[1])
-        normal_mean = torch.full((3, 256, 256), norm_means[2])
-        depth_mean = torch.full((3, 256, 256), norm_means[3])
-        gt_mean = torch.full((3, 256, 256), norm_means[4])
-        self.norm_mean = torch.cat((albedo_mean, direct_mean, normal_mean, depth_mean, gt_mean)).to(device)
+        means = []
+        for mean in norm_means:
+            means.append(torch.full((3, 256, 256), mean))
+        self.norm_mean = torch.cat(means).to(device)
 
-        albedo_std = torch.full((3, 256, 256), norm_stds[0])
-        direct_std = torch.full((3, 256, 256), norm_stds[1])
-        normal_std = torch.full((3, 256, 256), norm_stds[2])
-        depth_std = torch.full((3, 256, 256), norm_stds[3])
-        gt_std = torch.full((3, 256, 256), norm_stds[4])
-        self.norm_std = torch.cat((albedo_std, direct_std, normal_std, depth_std, gt_std)).to(device)
+        stds = []
+        for std in norm_stds:
+            means.append(torch.full((3, 256, 256), std))
+        self.norm_std = torch.cat(stds).to(device)
 
     def forward(self, input):
 
@@ -119,19 +115,15 @@ class D(nn.Module):
 
         self.sigmoid = nn.Sigmoid()
 
-        albedo_mean = torch.full((3, 256, 256), norm_means[0])
-        direct_mean = torch.full((3, 256, 256), norm_means[1])
-        normal_mean = torch.full((3, 256, 256), norm_means[2])
-        depth_mean = torch.full((3, 256, 256), norm_means[3])
-        gt_mean = torch.full((3, 256, 256), norm_means[4])
-        self.norm_mean = torch.cat((albedo_mean, direct_mean, normal_mean, depth_mean, gt_mean)).to(device)
+        means = []
+        for mean in norm_means:
+            means.append(torch.full((3, 256, 256), mean))
+        self.norm_mean = torch.cat(means).to(device)
 
-        albedo_std = torch.full((3, 256, 256), norm_stds[0])
-        direct_std = torch.full((3, 256, 256), norm_stds[1])
-        normal_std = torch.full((3, 256, 256), norm_stds[2])
-        depth_std = torch.full((3, 256, 256), norm_stds[3])
-        gt_std = torch.full((3, 256, 256), norm_stds[4])
-        self.norm_std = torch.cat((albedo_std, direct_std, normal_std, depth_std, gt_std)).to(device)
+        stds = []
+        for std in norm_stds:
+            means.append(torch.full((3, 256, 256), std))
+        self.norm_std = torch.cat(stds).to(device)
 
     def forward(self, input):
         normalized_input = self.normalize(input)

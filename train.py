@@ -21,7 +21,7 @@ from model import G, D, weights_init
 from util import load_image, save_image
 from torch.utils.tensorboard import SummaryWriter
 
-buffer_names = ['albedo', 'direct', 'normal', 'depth']
+buffer_names = ['albedo', 'direct', 'normal', 'depth', 'normal2p0t0', 'normal2p0t45', 'normal2p90t45', 'normal2p180t45', 'normal2p270t45']
 
 if __name__ == "__main__":
 
@@ -33,7 +33,7 @@ if __name__ == "__main__":
     parser.add_argument('--windows_filepaths', type=bool, default=False, help='use windows filepaths')
     parser.add_argument('--save_val_images', type=bool, default=False,
                         help='save the resulting images of the validation set')
-    parser.add_argument('--gt_name', type=str, default="gt", help='name of gt folder')
+    parser.add_argument('--gt_name', type=str, default="indirect", help='name of gt folder')
     parser.add_argument('--train_batch_size', type=int, default=1, help='batch size for training') #TODO check of MSE en SSIM werken bij batch > 1
     parser.add_argument('--test_batch_size', type=int, default=1, help='batch size for testing')
     parser.add_argument('--n_epoch', type=int, default=200, help='number of iterations')
