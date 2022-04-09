@@ -7,21 +7,20 @@ import time
 import zipfile
 import shutil
 
-dataset_name = "primitive_room_f1"
+dataset_name = "primitive_room_f1_ex"
 
 key = "C:\\Users\\Michi\\.ssh\\id_rsa"
 password = open("C:\\Users\\Michi\\Documents\\school\\Thesis-stuff\\wachtwoord.txt", 'r').read().rstrip()
-hostnames = ["aalst", "aarlen", "alken", "ans", "antwerpen", "asse", "aubel", "balen", "bevekom",
-             "bierbeek", "binche", "borgworm", "charleroi", "chimay", "diest", "dinant", "doornik",
-             "dour", "durbuy", "eupen", "fleurus", "geel", "genk", "gent",
-             "hamme", "hastiere", "heers", "heist", "herent", "hove", "ieper", "kaprijke", "komen",
-             "laarne", "lanaken", "libramont", "lier", "lommel", "maaseik", "malle",
-             "mechelen", "moeskroen", "musson", "nijvel", "olen", "ottignies", "overpelt",
+hostnames = ["aalst", "aarlen", "alken", "ans", "antwerpen", "asse", "aubel", "balen", "beveren", "bevekom", "bergen",
+             "brugge", "bierbeek", "binche", "borgworm", "charleroi", "chimay", "damme", "diest", "dinant", "doornik",
+             "dour", "durbuy", "eeklo", "eupen", "fleurus", "geel", "genk", "gent", "gouvy", "haacht", "halle", "ham",
+             "hamme", "hasselt", "hastiere", "heers", "heist", "herent", "hoei", "hove", "ieper", "kaprijke", "komen",
+             "laarne", "lanaken", "libin", "libramont", "lier", "lint", "lommel", "luik", "maaseik", "malle", "namen",
+             "mechelen", "moeskroen", "musson", "nijvel", "ohey", "olen", "ottignies", "overpelt", "pittem", "perwez",
              "riemst", "rixensart", "roeselare", "ronse", "schoten", "spa", "stavelot", "temse", "terhulpen",
              "tienen", "torhout", "tremelo", "turnhout", "veurne", "vielsalm", "vilvoorde", "voeren", "waterloo",
              "waver", "zwalm"]
 # behalve yvoir
-# bergen, beveren, brugge, halle, eeklo, damme, gouvy, hoei, ohey, hasselt, ham, haacht, libin, lint, luik, pittem, perwez, namen down
 input_remote_dir = "/home/r0705259/Thesis/scenefiles"
 output_remote_dir = "/home/r0705259/Thesis/trainingdata"
 pbrt_remote_dir = "/home/r0705259/Thesis/PBRTmod/build"
