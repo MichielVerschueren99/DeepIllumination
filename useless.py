@@ -5,18 +5,9 @@ import Imath
 import torch
 import util
 
-a = [1 , 2]
+a = [1, 2, 3, 4, 5]
 b = [3, 4]
 
-c = a + b
-
-z = torch.Tensor([[1, 2]])
-y = torch.Tensor([[2, 5]])
-lijst = [z, y]
-x = torch.Tensor([[3, 8]])
-
-k = torch.max(x).item()
-
-bb = torch.cat(lijst + [x], 1)
-
+c = a[:-3]
+d = a[-3:]
 print("test")

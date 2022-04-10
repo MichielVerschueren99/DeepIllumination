@@ -50,7 +50,7 @@ class G(nn.Module):
 
         stds = []
         for std in norm_stds:
-            means.append(torch.full((3, 256, 256), std))
+            stds.append(torch.full((3, 256, 256), std))
         self.norm_std = torch.cat(stds).to(device)
 
     def forward(self, input):
@@ -87,13 +87,13 @@ class G(nn.Module):
         return output
 
     def normalize_buffers(self, input):
-        return torch.div(torch.sub(input, self.norm_mean[:12]), self.norm_std[:12])
+        return torch.div(torch.sub(input, self.norm_mean[:-3]), self.norm_std[:-3])
 
     def normalize_gt(self, input):
         return torch.div(torch.sub(input, self.norm_mean[-3:]), self.norm_std[-3:])
 
     def unnormalize_buffers(self, input):
-        return torch.add(torch.mul(input, self.norm_std[:12]), self.norm_mean[:12])
+        return torch.add(torch.mul(input, self.norm_std[:-3]), self.norm_mean[:-3])
 
     def unnormalize_gt(self, input):
         return torch.add(torch.mul(input, self.norm_std[-3:]), self.norm_mean[-3:])
@@ -122,7 +122,7 @@ class D(nn.Module):
 
         stds = []
         for std in norm_stds:
-            means.append(torch.full((3, 256, 256), std))
+            stds.append(torch.full((3, 256, 256), std))
         self.norm_std = torch.cat(stds).to(device)
 
     def forward(self, input):
