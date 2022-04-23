@@ -7,7 +7,7 @@ from torch.autograd import Variable
 from model import G
 from util import is_image, load_image, save_image
 
-buffer_names = ['albedo', 'direct', 'normal', 'depth']
+buffer_names = ['albedo', 'direct', 'normal', 'depth', 'normal2p0t0', 'normal2p0t45', 'normal2p90t45', 'normal2p180t45', 'normal2p270t45', 'albedo2p0t0', 'albedo2p0t45', 'albedo2p90t45', 'albedo2p180t45', 'albedo2p270t45']
 
 if __name__ == "__main__":
 
@@ -16,7 +16,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='DeepRendering-implementation')
     parser.add_argument('--dataset', required=True, help='unity')
     parser.add_argument('--model', type=str, required=True, help='model file')
-    parser.add_argument('--gt_name', type=str, default="gt", help='name of gt folder')
+    parser.add_argument('--gt_name', type=str, default="indirect", help='name of gt folder')
     parser.add_argument('--n_channel_input', type=int, default=3, help='input channel')
     parser.add_argument('--n_channel_output', type=int, default=3, help='output channel')
     parser.add_argument('--n_generator_filters', type=int, default=64, help="number of generator filters")
@@ -30,7 +30,7 @@ if __name__ == "__main__":
         device = torch.device("cpu")
 
     netG_model = torch.load(os.getcwd() + '\\checkpoint\\{}'.format(opt.model), map_location=device)
-    netG = G(opt.n_channel_input * 4, opt.n_channel_output, opt.n_generator_filters, netG_model['norm_mean_G'], netG_model['norm_std_G'], device)
+    netG = G(opt.n_channel_input * len(buffer_names), opt.n_channel_output, opt.n_generator_filters, netG_model['norm_mean_G'], netG_model['norm_std_G'], device)
     netG.load_state_dict(netG_model['state_dict_G'])
     root_dir = os.getcwd() + '\\dataset\\{}\\test\\'.format(opt.dataset)
     image_dir = os.getcwd() + '\\dataset\\{}\\test\\{}'.format(opt.dataset, buffer_names[0])
