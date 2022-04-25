@@ -21,7 +21,7 @@ from model import G, D, weights_init
 from util import load_image, save_image
 from torch.utils.tensorboard import SummaryWriter
 
-buffer_names = ['albedo', 'direct', 'normal', 'depth', 'normal2p0t0', 'normal2p0t45', 'normal2p90t45', 'normal2p180t45', 'normal2p270t45', 'albedo2p0t0', 'albedo2p0t45', 'albedo2p90t45', 'albedo2p180t45', 'albedo2p270t45']
+buffer_names = ['albedo', 'direct', 'normal', 'depth'] # , 'normal2p0t0', 'normal2p0t45', 'normal2p90t45', 'normal2p180t45', 'normal2p270t45', 'albedo2p0t0', 'albedo2p0t45', 'albedo2p90t45', 'albedo2p180t45', 'albedo2p270t45']
 
 if __name__ == "__main__":
 
