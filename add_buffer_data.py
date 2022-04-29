@@ -1,13 +1,21 @@
+import math
 import shutil
 import os
 
-dataset_name = "primitive_room_f1_ex2"
+dataset_name = "primitive_room_f1dot5"
 source_dataset_name = "primitive_room_f1"
-new_buffers = ["albedo2p0t0", "albedo2p0t45", "albedo2p90t45", "albedo2p180t45", "albedo2p270t45"]
+#new_buffers = ["albedo2p0t0", "albedo2p0t45", "albedo2p90t45", "albedo2p180t45", "albedo2p270t45"]
 
-phi_list = [0, 0, 90, 180, 270]
+phi_list = [36, 108, 180, 252, 324, 36, 108, 180, 252, 324, 36, 108, 180, 252, 324, 36, 108, 180, 252, 324, 36, 108, 180, 252, 324]
 
-theta_list = [0, 45, 45, 45, 45]
+theta_list = [18.4349488229220,	18.4349488229220, 18.4349488229220,	18.4349488229220, 18.4349488229220,	33.2109107608991,
+              33.2109107608991,	33.2109107608991, 33.2109107608991,	33.2109107608991, 45, 45, 45, 45, 45, 56.7890892391009,
+              56.7890892391009,	56.7890892391009, 56.7890892391009,	56.7890892391009, 71.5650511770780,	71.5650511770780,
+              71.5650511770780,	71.5650511770780, 71.5650511770780]
+
+new_buffers = []
+for i in range(0, len(phi_list)):
+    new_buffers.append("albedo2p{}t{}".format(math.floor(phi_list[i]), math.floor(theta_list[i])))
 
 def replace_text(file_name, original, replacement):
     f = open(file_name, 'r')
@@ -47,3 +55,4 @@ for b in range(0, len(new_buffers)):
             shutil.copyfile(source, new)
             replace_text(new, 'Integrator "albedo"', 'Integrator "albedo2" "float phi" [ {} ] "float theta" [ {} ]'.format(phi, theta))
             replace_text(new, '"string filename" [ "{}_albedo_{}.exr" ]'.format(data_type, str(i)), '"string filename" [ "{}_{}_{}.exr" ]'.format(data_type, buffer, str(i)))
+    print("buffer done")
