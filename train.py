@@ -1,3 +1,4 @@
+import math
 import os
 from os.path import join
 import argparse
@@ -21,7 +22,14 @@ from model import G, D, weights_init
 from util import load_image, save_image
 from torch.utils.tensorboard import SummaryWriter
 
-buffer_names = ['albedo', 'direct', 'normal', 'depth'] # , 'normal2p0t0', 'normal2p0t45', 'normal2p90t45', 'normal2p180t45', 'normal2p270t45', 'albedo2p0t0', 'albedo2p0t45', 'albedo2p90t45', 'albedo2p180t45', 'albedo2p270t45']
+buffer_names = ['albedo', 'direct', 'normal', 'depth']
+phis = [36, 108, 180, 252, 324]
+thetas = [18.4349488229220,	33.2109107608991, 45, 56.7890892391009, 71.5650511770780]
+
+for phi in phis:
+    for theta in thetas:
+        buffer_names.append("albedo2p{}t{}".format(math.floor(phi), math.floor(theta)))
+        buffer_names.append("normal2p{}t{}".format(math.floor(phi), math.floor(theta)))
 
 if __name__ == "__main__":
 

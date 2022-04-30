@@ -2,7 +2,7 @@ import math
 import shutil
 import os
 
-dataset_name = "primitive_room_f1dot5"
+dataset_name = "primitive_room_f1dot6"
 source_dataset_name = "primitive_room_f1"
 #new_buffers = ["albedo2p0t0", "albedo2p0t45", "albedo2p90t45", "albedo2p180t45", "albedo2p270t45"]
 
@@ -15,7 +15,7 @@ theta_list = [18.4349488229220,	18.4349488229220, 18.4349488229220,	18.434948822
 
 new_buffers = []
 for i in range(0, len(phi_list)):
-    new_buffers.append("albedo2p{}t{}".format(math.floor(phi_list[i]), math.floor(theta_list[i])))
+    new_buffers.append("normal2p{}t{}".format(math.floor(phi_list[i]), math.floor(theta_list[i])))
 
 def replace_text(file_name, original, replacement):
     f = open(file_name, 'r')
@@ -38,6 +38,10 @@ for b in range(0, len(new_buffers)):
     phi = phi_list[b]
     theta = theta_list[b]
 
+    if not os.path.exists(os.path.join("folders", buffer)):
+        os.mkdir(os.path.join("folders", buffer))
+
+
     for data_type in ["test", "train", "val"]:
 
         amount = 0
@@ -53,6 +57,6 @@ for b in range(0, len(new_buffers)):
             source = "scenefiles/{}/{}_albedo_{}.pbrt".format(source_dataset_name, data_type, str(i))
             new = "scenefiles/{}/{}_{}_{}.pbrt".format(dataset_name, data_type, buffer, str(i))
             shutil.copyfile(source, new)
-            replace_text(new, 'Integrator "albedo"', 'Integrator "albedo2" "float phi" [ {} ] "float theta" [ {} ]'.format(phi, theta))
+            replace_text(new, 'Integrator "albedo"', 'Integrator "normal2" "float phi" [ {} ] "float theta" [ {} ]'.format(phi, theta))
             replace_text(new, '"string filename" [ "{}_albedo_{}.exr" ]'.format(data_type, str(i)), '"string filename" [ "{}_{}_{}.exr" ]'.format(data_type, buffer, str(i)))
     print("buffer done")

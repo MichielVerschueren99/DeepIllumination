@@ -152,9 +152,6 @@ def reflectNormal2Integrator(phi, theta):
 def depthIntegrator():
     return "\"depth\""
 
-def specAlbedoIntegrator():
-    return "\"specalbedo\""
-
 def albedoIntegrator():
     return "\"albedo\""
 
@@ -164,13 +161,17 @@ def albedo2Integrator(phi, theta):
 def reflectAlbedo2Integrator(phi, theta):
     return "\"reflectalbedo2\" \"float phi\" [ {} ] \"float theta\" [ {} ]".format(phi, theta)
 
+def specAlbedoIntegrator():
+    return "\"specalbedo\""
+
+def specAlbedo2Integrator(phi, theta):
+    return "\"specalbedo2\" \"float phi\" [ {} ] \"float theta\" [ {} ]".format(phi, theta)
+
 def reflectSpecAlbedo2Integrator(phi, theta):
     return "\"reflectspecalbedo2\" \"float phi\" [ {} ] \"float theta\" [ {} ]".format(phi, theta)
 
-
 def roughnessIntegrator():
     return "\"roughness\""
-
 
 def directIlluminationIntegrator():
     return "\"directlighting\""

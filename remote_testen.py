@@ -7,7 +7,7 @@ import time
 import zipfile
 import shutil
 
-dataset_name = "primitive_room_f2"
+dataset_name = "primitive_room_f1dot6"
 
 key = "C:\\Users\\Michi\\.ssh\\id_rsa"
 password = open("C:\\Users\\Michi\\Documents\\school\\Thesis-stuff\\wachtwoord.txt", 'r').read().rstrip()
