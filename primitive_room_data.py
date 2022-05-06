@@ -4,9 +4,9 @@ import subprocess
 from termcolor import cprint
 import util as u
 
-train_amount = 100
-val_amount = 1
-test_amount = 1
+train_amount = 2000
+val_amount = 500
+test_amount = 30
 
 write_location = "/home/r0705259/Thesis/trainingdata/"
 
@@ -35,8 +35,8 @@ def primitive_room():
 		Translate {} 0 {}
 		Scale 0.1 0.1 0.1
 		Rotate {} 0 1 0
-		Shape "plymesh" "string filename" "C:\\\\Users\\\\Michi\\\\PycharmProjects\\\\DeepIllumination\\\\meshes\\\\dodecahedron.ply"
-	AttributeEnd""" # "/home/r0705259/Thesis/meshes/dodecahedron.ply"
+		Shape "plymesh" "string filename" "/home/r0705259/Thesis/meshes/dodecahedron.ply"
+	AttributeEnd"""
 
     # BUNNY
     bunny_template = """AttributeBegin
@@ -44,8 +44,8 @@ def primitive_room():
 		Translate {} 0 {}
 		Scale 0.15 0.15 0.15
 		Rotate {} 0 1 0
-		Shape "plymesh" "string filename" "C:\\\\Users\\\\Michi\\\\PycharmProjects\\\\DeepIllumination\\\\meshes\\\\bunny.ply"
-	AttributeEnd""" # "/home/r0705259/Thesis/meshes/bunny.ply"
+		Shape "plymesh" "string filename" "/home/r0705259/Thesis/meshes/bunny.ply"
+	AttributeEnd"""
 
     # TEAPOT
     teapot_template = """AttributeBegin
@@ -53,8 +53,8 @@ def primitive_room():
 		Translate {} 0 {}
 		Scale 0.17 0.17 0.17
 		Rotate {} 0 1 0
-		Shape "plymesh" "string filename" "C:\\\\Users\\\\Michi\\\\PycharmProjects\\\\DeepIllumination\\\\meshes\\\\teapot.ply"
-	AttributeEnd""" # "/home/r0705259/Thesis/meshes/teapot.ply"
+		Shape "plymesh" "string filename" "/home/r0705259/Thesis/meshes/teapot.ply"
+	AttributeEnd"""
 
     counter = 0
     per_dataset_counter = 0
@@ -124,7 +124,7 @@ def generate_data(dataset, camera, world, name):
                                            u.imageFilm(albedo_name + ".exr"), camera, world)
     normal_scene_file_content = u.makePBRT(u.normalIntegrator(), u.stratifiedSampler(), u.triangleFilter(),
                                            u.imageFilm(normal_name + ".exr"), camera, world)
-    direct_scene_file_content = u.makePBRT(u.directIlluminationIntegrator(), u.stratifiedSampler(), u.triangleFilter(),
+    direct_scene_file_content = u.makePBRT(u.directIlluminationIntegrator(), u.stratifiedSampler(16, 16), u.triangleFilter(),
                                            u.imageFilm(direct_name + ".exr"), camera, world)
     depth_scene_file_content = u.makePBRT(u.depthIntegrator(), u.stratifiedSampler(), u.triangleFilter(),
                                           u.imageFilm(depth_name + ".exr"), camera, world)
@@ -132,12 +132,12 @@ def generate_data(dataset, camera, world, name):
                                        u.imageFilm(gt_name + ".exr"), camera, world)
     indirect_scene_file_content = u.makePBRT(u.indirectIlluminationIntegrator(), u.stratifiedSampler(32, 32), u.triangleFilter(),
                                        u.imageFilm(indirect_name + ".exr"), camera, world)
-    save_scene_file(albedo_scene_file_content, "scenefiles\\primitive_room_f1_test\\" + albedo_name + ".pbrt")
-    save_scene_file(normal_scene_file_content, "scenefiles\\primitive_room_f1_test\\" + normal_name + ".pbrt")
-    save_scene_file(direct_scene_file_content, "scenefiles\\primitive_room_f1_test\\" + direct_name + ".pbrt")
-    save_scene_file(depth_scene_file_content, "scenefiles\\primitive_room_f1_test\\" + depth_name + ".pbrt")
-    save_scene_file(gt_scene_file_content, "scenefiles\\primitive_room_f1_test\\" + gt_name + ".pbrt")
-    save_scene_file(indirect_scene_file_content, "scenefiles\\primitive_room_f1_test\\" + indirect_name + ".pbrt")
+    save_scene_file(albedo_scene_file_content, "scenefiles\\primitive_room_ff\\" + albedo_name + ".pbrt")
+    save_scene_file(normal_scene_file_content, "scenefiles\\primitive_room_ff\\" + normal_name + ".pbrt")
+    save_scene_file(direct_scene_file_content, "scenefiles\\primitive_room_ff\\" + direct_name + ".pbrt")
+    save_scene_file(depth_scene_file_content, "scenefiles\\primitive_room_ff\\" + depth_name + ".pbrt")
+    save_scene_file(gt_scene_file_content, "scenefiles\\primitive_room_ff\\" + gt_name + ".pbrt")
+    save_scene_file(indirect_scene_file_content, "scenefiles\\primitive_room_ff\\" + indirect_name + ".pbrt")
 
 
 def save_scene_file(scene_file_content, path):

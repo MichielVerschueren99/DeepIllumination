@@ -2,8 +2,8 @@ import math
 import shutil
 import os
 
-dataset_name = "primitive_room_f1dot6"
-source_dataset_name = "primitive_room_f1"
+dataset_name = "primitive_room_ffdot5"
+source_dataset_name = "primitive_room_ff"
 #new_buffers = ["albedo2p0t0", "albedo2p0t45", "albedo2p90t45", "albedo2p180t45", "albedo2p270t45"]
 
 phi_list = [36, 108, 180, 252, 324, 36, 108, 180, 252, 324, 36, 108, 180, 252, 324, 36, 108, 180, 252, 324, 36, 108, 180, 252, 324]

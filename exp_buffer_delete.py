@@ -5,16 +5,20 @@ import train
 
 if __name__ == "__main__":
 
-    for _ in range(0, 3):
-        os.system("python train.py --dataset primitive_room_f1_no_albedo --n_epoch 25 --seed 1")
+    os.system("python train.py --dataset primitive_room_ff_no_albedo --n_epoch 25 --seed 101")
+    os.system("python train.py --dataset primitive_room_ff_no_albedo --n_epoch 25 --seed 102")
+    os.system("python train.py --dataset primitive_room_ff_no_albedo --n_epoch 25 --seed 103")
 
-    for _ in range(0, 3):
-        os.system("python train.py --dataset primitive_room_f1_no_depth --n_epoch 25 --seed 2")
+    os.system("python train.py --dataset primitive_room_ff_no_depth --n_epoch 25 --seed 104")
+    os.system("python train.py --dataset primitive_room_ff_no_depth --n_epoch 25 --seed 105")
+    os.system("python train.py --dataset primitive_room_ff_no_depth --n_epoch 25 --seed 106")
 
-    for _ in range(0, 3):
-        os.system("python train.py --dataset primitive_room_f1_no_direct --n_epoch 25 --seed 3")
+    os.system("python train.py --dataset primitive_room_ff_no_direct --n_epoch 25 --seed 107")
+    os.system("python train.py --dataset primitive_room_ff_no_direct --n_epoch 25 --seed 108")
+    os.system("python train.py --dataset primitive_room_ff_no_direct --n_epoch 25 --seed 109")
 
-    for _ in range(0, 3):
-        os.system("python train.py --dataset primitive_room_f1_no_normal --n_epoch 25 --seed 4")
+    os.system("python train.py --dataset primitive_room_ff_no_normal --n_epoch 25 --seed 110")
+    os.system("python train.py --dataset primitive_room_ff_no_normal --n_epoch 25 --seed 111")
+    os.system("python train.py --dataset primitive_room_ff_no_normal --n_epoch 25 --seed 112")
 
     print("ALL TRAINING RUNS COMPLETED")
