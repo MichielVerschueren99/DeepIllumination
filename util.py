@@ -143,10 +143,10 @@ def pathTracingIntegrator(maxdepth=65):
 def normalIntegrator():
     return "\"normal\""
 
-def normal2Integrator(phi, theta):
+def normal2Integrator(phi=0, theta=0):
     return "\"normal2\" \"float phi\" [ {} ] \"float theta\" [ {} ]".format(phi, theta)
 
-def reflectNormal2Integrator(phi, theta):
+def reflectNormal2Integrator(phi=0, theta=0):
     return "\"reflectnormal2\" \"float phi\" [ {} ] \"float theta\" [ {} ]".format(phi, theta)
 
 def depthIntegrator():
@@ -155,23 +155,29 @@ def depthIntegrator():
 def albedoIntegrator():
     return "\"albedo\""
 
-def albedo2Integrator(phi, theta):
+def albedo2Integrator(phi=0, theta=0):
     return "\"albedo2\" \"float phi\" [ {} ] \"float theta\" [ {} ]".format(phi, theta)
 
-def reflectAlbedo2Integrator(phi, theta):
+def reflectAlbedo2Integrator(phi=0, theta=0):
     return "\"reflectalbedo2\" \"float phi\" [ {} ] \"float theta\" [ {} ]".format(phi, theta)
 
 def specAlbedoIntegrator():
     return "\"specalbedo\""
 
-def specAlbedo2Integrator(phi, theta):
+def specAlbedo2Integrator(phi=0, theta=0):
     return "\"specalbedo2\" \"float phi\" [ {} ] \"float theta\" [ {} ]".format(phi, theta)
 
-def reflectSpecAlbedo2Integrator(phi, theta):
+def reflectSpecAlbedo2Integrator(phi=0, theta=0):
     return "\"reflectspecalbedo2\" \"float phi\" [ {} ] \"float theta\" [ {} ]".format(phi, theta)
 
 def roughnessIntegrator():
     return "\"roughness\""
+
+def roughness2Integrator(phi=0, theta=0):
+    return "\"roughness2\" \"float phi\" [ {} ] \"float theta\" [ {} ]".format(phi, theta)
+
+def reflectRoughness2Integrator(phi=0, theta=0):
+    return "\"reflectroughness2\" \"float phi\" [ {} ] \"float theta\" [ {} ]".format(phi, theta)
 
 def directIlluminationIntegrator():
     return "\"directlighting\""
@@ -267,12 +273,12 @@ def emptyPrimitiveRoom(back_rgb, right_rgb, front_rgb, left_rgb):
         .format(left_rgb[0], left_rgb[1], left_rgb[2], right_rgb[0], right_rgb[1], right_rgb[2], back_rgb[0], back_rgb[1], back_rgb[2], front_rgb[0], front_rgb[1], front_rgb[2])
 
 def emptyGlossyPrimitiveRoom(back_vals, right_vals, front_vals, left_vals):
-    return """MakeNamedMaterial "LeftWall" "string type" [ "plastic" ] "rgb Kd" [ {} {} {} ] "rgb Ks" [ {} {} {} ] "float roughness" [ {} ]
-    MakeNamedMaterial "RightWall" "string type" [ "plastic" ] "rgb Kd" [ {} {} {} ] "rgb Ks" [ {} {} {} ] "float roughness" [ {} ]
+    return """MakeNamedMaterial "LeftWall" "string type" [ "plastic" ] "rgb Kd" [ 0 0 0 ] "rgb Ks" [ {} {} {} ] "float roughness" [ {} ]
+    MakeNamedMaterial "RightWall" "string type" [ "plastic" ] "rgb Kd" [ 0 0 0 ] "rgb Ks" [ {} {} {} ] "float roughness" [ {} ]
     MakeNamedMaterial "Floor" "string type" [ "matte" ] "rgb Kd" [ 0.725000 0.710000 0.680000 ] 
     MakeNamedMaterial "Ceiling" "string type" [ "matte" ] "rgb Kd" [ 0.725000 0.710000 0.680000 ] 
-    MakeNamedMaterial "BackWall" "string type" [ "plastic" ] "rgb Kd" [ {} {} {} ] "rgb Ks" [ {} {} {}] "float roughness" [ {} ]
-    MakeNamedMaterial "FrontWall" "string type" [ "plastic" ] "rgb Kd" [ {} {} {} ] "rgb Ks" [ {} {} {}] "float roughness" [ {} ]
+    MakeNamedMaterial "BackWall" "string type" [ "plastic" ] "rgb Kd" [ 0 0 0 ] "rgb Ks" [ {} {} {}] "float roughness" [ {} ]
+    MakeNamedMaterial "FrontWall" "string type" [ "plastic" ] "rgb Kd" [ 0 0 0 ] "rgb Ks" [ {} {} {}] "float roughness" [ {} ]
     MakeNamedMaterial "Light" "string type" [ "matte" ] "rgb Kd" [ 0.000000 0.000000 0.000000 ] 
     NamedMaterial "Floor" 
     Shape "trianglemesh" "integer indices" [ 0 1 2 0 2 3 ] "point P" [ -1 0 -1 -1 0 1 1 0 1 1 0 -1 ] "normal N" [ 0 1 0 0 1 0 0 1 0 0 1 0 ] "float uv" [ 0 0 1 0 1 1 0 1 ] 
@@ -286,10 +292,10 @@ def emptyGlossyPrimitiveRoom(back_vals, right_vals, front_vals, left_vals):
     Shape "trianglemesh" "integer indices" [ 0 1 2 0 2 3 ] "point P" [ 1 0 -1 1 2 -1 1 2 1 1 0 1 ] "normal N" [ 1 0 0 1 0 0 1 0 0 1 0 0 ] "float uv" [ 0 0 1 0 1 1 0 1 ] 
     NamedMaterial "LeftWall" 
     Shape "trianglemesh" "integer indices" [ 0 1 2 0 2 3 ] "point P" [ -1 0 1 -1 2 1 -1 2 -1 -1 0 -1 ] "normal N" [ -1 0 0 -1 0 0 -1 0 0 -1 0 0 ] "float uv" [ 0 0 1 0 1 1 0 1 ] """ \
-    .format(left_vals[0], left_vals[1], left_vals[2], left_vals[3], left_vals[4], left_vals[5], left_vals[6],
-            right_vals[0], right_vals[1], right_vals[2], right_vals[3], right_vals[4], right_vals[5], right_vals[6],
-            back_vals[0], back_vals[1], back_vals[2], back_vals[3], back_vals[4], back_vals[5], back_vals[6],
-            front_vals[0], front_vals[1], front_vals[2], front_vals[3], front_vals[4], front_vals[5], front_vals[6])
+    .format(left_vals[0], left_vals[1], left_vals[2], left_vals[3],
+            right_vals[0], right_vals[1], right_vals[2], right_vals[3],
+            back_vals[0], back_vals[1], back_vals[2], back_vals[3],
+            front_vals[0], front_vals[1], front_vals[2], front_vals[3])
 
 def put_render_in_location(path):
     if os.path.exists(path):
