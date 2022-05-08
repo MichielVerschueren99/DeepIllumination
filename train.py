@@ -23,13 +23,12 @@ from util import load_image, save_image
 from torch.utils.tensorboard import SummaryWriter
 
 buffer_names = ['albedo', 'direct', 'normal', 'depth']
-# phis = [36, 108, 180, 252, 324]
-# thetas = [18.4349488229220,	33.2109107608991, 45, 56.7890892391009, 71.5650511770780]
-#
-# for phi in phis:
-#     for theta in thetas:
-#         buffer_names.append("albedo2p{}t{}".format(math.floor(phi), math.floor(theta))) #TODO WAAROM NORMAALBUFFER NORMALISEREN?
-#         buffer_names.append("normal2p{}t{}".format(math.floor(phi), math.floor(theta)))
+phis = [0, 0, 90, 180, 270]
+thetas = [0, 45, 45, 45, 45]
+
+for i in range(0, len(phis)):
+    buffer_names.append("albedo2p{}t{}".format(phis[i], thetas[i]))
+    buffer_names.append("normal2p{}t{}".format(phis[i], thetas[i]))
 
 if __name__ == "__main__":
 
