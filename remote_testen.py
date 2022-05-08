@@ -7,23 +7,23 @@ import time
 import zipfile
 import shutil
 
-dataset_name = "primitive_room_ff"
+dataset_name = "primitive_room_ff2"
 
 key = "C:\\Users\\Michi\\.ssh\\id_rsa"
 password = open("C:\\Users\\Michi\\Documents\\school\\Thesis-stuff\\wachtwoord.txt", 'r').read().rstrip()
-hostnames = ["aalst", "aarlen", "alken", "antwerpen", "asse", "aubel", "balen", "beveren", "bevekom", "bergen",
+hostnames = ["aalst", "aarlen", "alken", "antwerpen", "ans", "asse", "aubel", "balen", "beveren", "bevekom", "bergen",
              "brugge", "bierbeek", "binche", "borgworm", "charleroi", "chimay", "damme", "diest", "dinant", "doornik",
-             "dour", "durbuy", "eeklo", "eupen", "fleurus", "geel", "gent", "gouvy", "haacht", "halle", "ham",
+             "dour", "durbuy", "eeklo", "eupen", "fleurus", "geel", "genk", "gent", "gouvy", "haacht", "halle", "ham",
              "hamme", "hasselt", "hastiere", "heers", "heist", "herent", "hoei", "hove", "ieper", "kaprijke", "komen",
              "laarne", "lanaken", "libin", "libramont", "lier", "lint", "lommel", "luik", "maaseik", "malle", "namen",
              "mechelen", "moeskroen", "musson", "nijvel", "ohey", "olen", "ottignies", "overpelt", "pittem", "perwez",
              "riemst", "rixensart", "roeselare", "ronse", "schoten", "spa", "stavelot", "temse", "terhulpen",
              "tienen", "torhout", "tremelo", "turnhout", "veurne", "vielsalm", "vilvoorde", "voeren", "waterloo",
              "waver", "zwalm"]
-# behalve yvoir ans en genk te druk
+# behalve yvoir
 input_remote_dir = "/home/r0705259/Thesis/scenefiles"
 output_remote_dir = "/home/r0705259/Thesis/trainingdata"
-pbrt_remote_dir = "/home/r0705259/Thesis/PBRTmod/build"
+pbrt_remote_dir = "/home/r0705259/Thesis/PBRTmod2/PBRTmod/build" #TODO tijdelijk moeten veranderen
 
 max_batch_size = 8000
 
