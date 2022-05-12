@@ -7,8 +7,6 @@ from torch.autograd import Variable
 from model import G
 from util import is_image, load_image, save_image
 
-buffer_names = ['albedo', 'direct', 'normal', 'depth']#, 'normal2p0t0', 'normal2p0t45', 'normal2p90t45', 'normal2p180t45', 'normal2p270t45', 'albedo2p0t0', 'albedo2p0t45', 'albedo2p90t45', 'albedo2p180t45', 'albedo2p270t45']
-
 if __name__ == "__main__":
 
     directory = os.getcwd()
@@ -29,12 +27,16 @@ if __name__ == "__main__":
     else:
         device = torch.device("cpu")
 
+    root_dir = os.getcwd() + '\\dataset\\{}\\test\\'.format(opt.dataset)
+    buffer_names = os.listdir(root_dir)
+    buffer_names.remove("gt")
+    buffer_names.remove("indirect")
+    image_dir = os.getcwd() + '\\dataset\\{}\\test\\{}'.format(opt.dataset, buffer_names[0])
+    image_filenames = [x for x in os.listdir(image_dir) if is_image(x)]
+
     netG_model = torch.load(os.getcwd() + '\\checkpoint\\{}'.format(opt.model), map_location=device)
     netG = G(opt.n_channel_input * len(buffer_names), opt.n_channel_output, opt.n_generator_filters, netG_model['norm_mean_G'], netG_model['norm_std_G'], device)
     netG.load_state_dict(netG_model['state_dict_G'])
-    root_dir = os.getcwd() + '\\dataset\\{}\\test\\'.format(opt.dataset)
-    image_dir = os.getcwd() + '\\dataset\\{}\\test\\{}'.format(opt.dataset, buffer_names[0])
-    image_filenames = [x for x in os.listdir(image_dir) if is_image(x)]
 
     for image_name in image_filenames:
 
