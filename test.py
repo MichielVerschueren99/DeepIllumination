@@ -16,7 +16,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='DeepRendering-implementation')
     parser.add_argument('--dataset', required=True, help='unity')
     parser.add_argument('--model', type=str, required=True, help='model file')
-    parser.add_argument('--gt_name', type=str, default="indirect", help='name of gt folder')
+    parser.add_argument('--gt_name', type=str, default="gt", help='name of gt folder')
     parser.add_argument('--n_channel_input', type=int, default=3, help='input channel')
     parser.add_argument('--n_channel_output', type=int, default=3, help='output channel')
     parser.add_argument('--n_generator_filters', type=int, default=64, help="number of generator filters")
@@ -63,4 +63,6 @@ if __name__ == "__main__":
             os.mkdir("result")
         if not os.path.exists(os.path.join("result", opt.dataset)):
             os.mkdir(os.path.join("result", opt.dataset))
-        save_image(out_img, "result\\{}\\{}".format(opt.dataset, image_name))
+        if not os.path.exists(os.path.join(os.path.join("result", opt.dataset), opt.model[:-4])):
+            os.mkdir(os.path.join(os.path.join("result", opt.dataset), opt.model[:-4]))
+        save_image(out_img, "result\\{}\\{}\\{}".format(opt.dataset, opt.model[:-4], image_name))
