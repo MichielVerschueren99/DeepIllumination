@@ -22,13 +22,14 @@ from model import G, D, weights_init
 from util import load_image, save_image
 from torch.utils.tensorboard import SummaryWriter
 
-buffer_names = ['albedo', 'direct', 'normal', 'depth']
-phis = [0, 0, 90, 180, 270]
-thetas = [0, 45, 45, 45, 45]
-
-for i in range(0, len(phis)):
-    buffer_names.append("albedo2p{}t{}".format(phis[i], thetas[i]))
-    buffer_names.append("normal2p{}t{}".format(phis[i], thetas[i]))
+buffer_names = ["direct", "depth", "roughness", "roughness2p0t0", "reflectroughness2p0t0", "albedo",
+    "albedo2p0t0", "reflectalbedo2p0t0", "specalbedo", "specalbedo2p0t0", "reflectspecalbedo2p0t0", "normal", "normal2p0t0", "reflectnormal2p0t0"]
+# phis = [0, 0, 90, 180, 270]
+# thetas = [0, 45, 45, 45, 45]
+#
+# for i in range(0, len(phis)):
+#     buffer_names.append("albedo2p{}t{}".format(phis[i], thetas[i]))
+#     buffer_names.append("normal2p{}t{}".format(phis[i], thetas[i]))
 
 if __name__ == "__main__":
 
