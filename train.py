@@ -92,6 +92,10 @@ if __name__ == "__main__":
     train_dir = join(root_dir + opt.dataset, "train")
     test_dir = join(root_dir + opt.dataset, "val")
 
+    # buffer_names = os.listdir(train_dir)
+    # buffer_names.remove("gt")
+    # buffer_names.remove("indirect")
+
     train_set = DataLoaderHelper(train_dir, buffer_names, gt_name)
     val_set = DataLoaderHelper(test_dir, buffer_names, gt_name)
 
