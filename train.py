@@ -22,13 +22,13 @@ from model import G, D, weights_init
 from util import load_image, save_image
 from torch.utils.tensorboard import SummaryWriter
 
-# buffer_names = ['albedo', 'direct', 'normal', 'depth']
-# phis = [0, 0, 90, 180, 270]
-# thetas = [0, 45, 45, 45, 45]
-#
-# for i in range(0, len(phis)):
-#     buffer_names.append("albedo2p{}t{}".format(phis[i], thetas[i]))
-#     buffer_names.append("normal2p{}t{}".format(phis[i], thetas[i]))
+buffer_names = ['albedo', 'direct', 'normal', 'depth']
+phis = [0, 0, 90, 180, 270]
+thetas = [0, 45, 45, 45, 45]
+
+for i in range(0, len(phis)):
+    buffer_names.append("albedo2p{}t{}".format(phis[i], thetas[i]))
+    buffer_names.append("normal2p{}t{}".format(phis[i], thetas[i]))
 
 if __name__ == "__main__":
 
@@ -91,9 +91,9 @@ if __name__ == "__main__":
     train_dir = join(root_dir + opt.dataset, "train")
     test_dir = join(root_dir + opt.dataset, "val")
 
-    buffer_names = os.listdir(train_dir)
-    buffer_names.remove("gt")
-    buffer_names.remove("indirect")
+    # buffer_names = os.listdir(train_dir)
+    # buffer_names.remove("gt")
+    # buffer_names.remove("indirect")
 
     train_set = DataLoaderHelper(train_dir, buffer_names, gt_name)
     val_set = DataLoaderHelper(test_dir, buffer_names, gt_name)

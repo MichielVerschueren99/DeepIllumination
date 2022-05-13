@@ -226,7 +226,7 @@ def generate_data(dataset, camera, world, name):
 
     save_scene_file(direct_scene_file_content, "scenefiles\\primitive_room_ff3\\" + direct_name + ".pbrt")
     save_scene_file(depth_scene_file_content, "scenefiles\\primitive_room_ff3\\" + depth_name + ".pbrt")
-    #save_scene_file(gt_scene_file_content, "scenefiles\\primitive_room_ff3\\" + gt_name + ".pbrt")
+    save_scene_file(gt_scene_file_content, "scenefiles\\primitive_room_ff3\\" + gt_name + ".pbrt")
     save_scene_file(indirect_scene_file_content, "scenefiles\\primitive_room_ff3\\" + indirect_name + ".pbrt")
 
 

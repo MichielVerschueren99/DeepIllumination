@@ -7,6 +7,14 @@ from torch.autograd import Variable
 from model import G
 from util import is_image, load_image, save_image
 
+buffer_names = ['albedo', 'direct', 'normal', 'depth']
+phis = [0, 0, 90, 180, 270]
+thetas = [0, 45, 45, 45, 45]
+
+for i in range(0, len(phis)):
+    buffer_names.append("albedo2p{}t{}".format(phis[i], thetas[i]))
+    buffer_names.append("normal2p{}t{}".format(phis[i], thetas[i]))
+
 if __name__ == "__main__":
 
     directory = os.getcwd()
@@ -15,6 +23,7 @@ if __name__ == "__main__":
     parser.add_argument('--dataset', required=True, help='unity')
     parser.add_argument('--model', type=str, required=True, help='model file')
     parser.add_argument('--gt_name', type=str, default="gt", help='name of gt folder')
+    parser.add_argument('--do_val', type=bool, default=True, help='run on validation set instead of test set')
     parser.add_argument('--n_channel_input', type=int, default=3, help='input channel')
     parser.add_argument('--n_channel_output', type=int, default=3, help='output channel')
     parser.add_argument('--n_generator_filters', type=int, default=64, help="number of generator filters")
@@ -27,11 +36,15 @@ if __name__ == "__main__":
     else:
         device = torch.device("cpu")
 
-    root_dir = os.getcwd() + '\\dataset\\{}\\test\\'.format(opt.dataset)
-    buffer_names = os.listdir(root_dir)
-    buffer_names.remove("gt")
-    buffer_names.remove("indirect")
-    image_dir = os.getcwd() + '\\dataset\\{}\\test\\{}'.format(opt.dataset, buffer_names[0])
+    if opt.do_val:
+        root_dir = os.getcwd() + '\\dataset\\{}\\val\\'.format(opt.dataset)
+        # buffer_names = os.listdir(root_dir)
+        # buffer_names.remove("gt")
+        # buffer_names.remove("indirect")
+        image_dir = os.getcwd() + '\\dataset\\{}\\val\\{}'.format(opt.dataset, buffer_names[0])
+    else:
+        root_dir = os.getcwd() + '\\dataset\\{}\\test\\'.format(opt.dataset)
+        image_dir = os.getcwd() + '\\dataset\\{}\\test\\{}'.format(opt.dataset, buffer_names[0])
     image_filenames = [x for x in os.listdir(image_dir) if is_image(x)]
 
     netG_model = torch.load(os.getcwd() + '\\checkpoint\\{}'.format(opt.model), map_location=device)
@@ -67,4 +80,7 @@ if __name__ == "__main__":
             os.mkdir(os.path.join("result", opt.dataset))
         if not os.path.exists(os.path.join(os.path.join("result", opt.dataset), opt.model[:-4])):
             os.mkdir(os.path.join(os.path.join("result", opt.dataset), opt.model[:-4]))
-        save_image(out_img, "result\\{}\\{}\\{}".format(opt.dataset, opt.model[:-4], image_name))
+        if opt.do_val:
+            save_image(out_img, "result\\{}\\{}\\{}".format(opt.dataset, opt.model[:-4], "val" + image_name))
+        else:
+            save_image(out_img, "result\\{}\\{}\\{}".format(opt.dataset, opt.model[:-4], image_name))
