@@ -7,13 +7,16 @@ from torch.autograd import Variable
 from model import G
 from util import is_image, load_image, save_image
 
-buffer_names = ['albedo', 'direct', 'normal', 'depth']
-phis = [0, 0, 90, 180, 270]
-thetas = [0, 45, 45, 45, 45]
+# buffer_names = ['albedo', 'direct', 'normal', 'depth']
 
-for i in range(0, len(phis)):
-    buffer_names.append("albedo2p{}t{}".format(phis[i], thetas[i]))
-    buffer_names.append("normal2p{}t{}".format(phis[i], thetas[i]))
+buffer_names = ["direct", "depth", "roughness", "roughness2p0t0", "reflectroughness2p0t0", "albedo",
+    "albedo2p0t0", "reflectalbedo2p0t0", "specalbedo", "specalbedo2p0t0", "reflectspecalbedo2p0t0", "normal", "normal2p0t0", "reflectnormal2p0t0"]
+# phis = [0, 0, 90, 180, 270]
+# thetas = [0, 45, 45, 45, 45]
+#
+# for i in range(0, len(phis)):
+#     buffer_names.append("albedo2p{}t{}".format(phis[i], thetas[i]))
+#     buffer_names.append("normal2p{}t{}".format(phis[i], thetas[i]))
 
 if __name__ == "__main__":
 
@@ -23,7 +26,7 @@ if __name__ == "__main__":
     parser.add_argument('--dataset', required=True, help='unity')
     parser.add_argument('--model', type=str, required=True, help='model file')
     parser.add_argument('--gt_name', type=str, default="gt", help='name of gt folder')
-    parser.add_argument('--do_val', type=bool, default=True, help='run on validation set instead of test set')
+    parser.add_argument('--do_val', type=bool, default=False, help='run on validation set instead of test set')
     parser.add_argument('--n_channel_input', type=int, default=3, help='input channel')
     parser.add_argument('--n_channel_output', type=int, default=3, help='output channel')
     parser.add_argument('--n_generator_filters', type=int, default=64, help="number of generator filters")
